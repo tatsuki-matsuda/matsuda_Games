@@ -26,6 +26,7 @@ public:
 		SOUND_LABEL_SE_EXPLOSION,	// 爆発音
 		SOUND_LABEL_SE_BUTTON,		// 決定音
 		SOUND_LABEL_SE_GRAZE,		// グレイズ音
+		//SOUND_LABEL_SE_BOMB,		// ボム音
 		SOUND_LABEL_MAX,
 
 	} SOUND_LABEL;

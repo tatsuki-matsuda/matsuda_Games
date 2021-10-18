@@ -17,6 +17,7 @@ CSound::SOUNDPARAM CSound::m_aParam[CSound::SOUND_LABEL_MAX] =
 	{ "data/SE/explosion001.wav", 0 },	// 爆発音
 	{ "data/SE/gamestart.wav", 0 },		// 決定音
 	{ "data/SE/graze.wav", 0 },			// グレイズ音
+	//{ "data/SE/bomb.wav", 0 },		// ボム音
 };
 
 //*****************************************************************************

@@ -105,35 +105,35 @@ HRESULT CEnemy::Init(D3DXVECTOR3 pos, D3DXVECTOR3 scale, D3DXVECTOR3 move)
 	if (m_EnemyType == ENEMYTYPE_NORMAL1)
 	{
 		//‘Ì—Í’l‚ÌÝ’è
-		m_nLife = ENEMY_LIFE;
+		m_nLife = ENEMY_LIFE + 100;
 	}
 
 	//’Êí’e3‚ðŒ‚‚Â“G
 	if (m_EnemyType == ENEMYTYPE_NORMAL3_R)
 	{
 		//‘Ì—Í’l‚ÌÝ’è
-		m_nLife = ENEMY_MINLIFE + 50;
+		m_nLife = ENEMY_MINLIFE;
 	}
 
 	//’Êí’e3‚ðŒ‚‚Â“G
 	if (m_EnemyType == ENEMYTYPE_NORMAL3_L)
 	{
 		//‘Ì—Í’l‚ÌÝ’è
-		m_nLife = ENEMY_MINLIFE + 50;
+		m_nLife = ENEMY_MINLIFE;
 	}
 
 	//’Êí’e4R‚ðŒ‚‚Â“G
 	if (m_EnemyType == ENEMYTYPE_NORMAL4_R)
 	{
 		//‘Ì—Í’l‚ÌÝ’è
-		m_nLife = ENEMY_MINLIFE + 100;
+		m_nLife = ENEMY_MINLIFE - 20;
 	}
 
 	//’Êí’e4L‚ðŒ‚‚Â“G
 	if (m_EnemyType == ENEMYTYPE_NORMAL4_L)
 	{
 		//‘Ì—Í’l‚ÌÝ’è
-		m_nLife = ENEMY_MINLIFE + 100;
+		m_nLife = ENEMY_MINLIFE - 20;
 	}
 
 	//N_WAY’e‚ðŒ‚‚Â“G
@@ -154,7 +154,7 @@ HRESULT CEnemy::Init(D3DXVECTOR3 pos, D3DXVECTOR3 scale, D3DXVECTOR3 move)
 	if (m_EnemyType == ENEMYTYPE_RUSH)
 	{
 		//‘Ì—Í’l‚ÌÝ’è
-		m_nLife = ENEMY_MINLIFE + 20;
+		m_nLife = ENEMY_MINLIFE + 30;
 	}
 
 

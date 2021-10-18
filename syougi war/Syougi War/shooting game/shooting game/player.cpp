@@ -292,8 +292,11 @@ void CPlayer::Update(void)
 
 				m_timer++;
 
-				if (m_nCntUse > 0)
+				if (m_nCntUse > 0 )
 				{
+					//音の生成
+				//	pSound->PlaySoundA(CSound::SOUND_LABEL_SE_BOMB);
+
 					for (int nCnt = 0; nCnt < 8; nCnt++)
 					{
 						//ボムの生成
@@ -569,13 +572,6 @@ void CPlayer::PlayerState(void)
 		//状態変化中の移動カウント
 		m_nCntStateMove++;
 
-
-		// ボム情報を取得
-		m_nCntUse = CGame::GetBomb()->GetBomb();
-
-		// ボムの設定
-		CGame::GetBomb()->SetBomb(m_nCntUse = 3);
-
 		//消滅変化カウントが一定値を超えるまで値をカウント
 		if (m_nDeathColor < 100)
 		{
@@ -586,9 +582,24 @@ void CPlayer::PlayerState(void)
 		//徐々に色を変化
 		m_Color = D3DXCOLOR(1.0f, 0.5f, 0.5f, (1.0f / ((float)m_nDeathColor*0.25f)));
 
+		if (CGame::GetTransision() != CGame::TRANSITION_RESULT)
+		{
+			// ボム情報を取得
+			m_nCntUse = CGame::GetBomb()->GetBomb();
+
+			// ボムの設定
+			CGame::GetBomb()->SetBomb(m_nCntUse = 3);
+		}
+		else if (m_nCntBomb > 400 && CGame::GetTransision() == CGame::TRANSITION_RESULT)
+		{
+			// ボムの設定
+			CGame::GetBomb()->SetBomb(m_nCntUse = 0);
+		}
+
 		//カウントが一定値を上回り、trasition_Result状態になっていない場合
 		if (m_nCntColor % 100 == 0 && CGame::GetTransision() != CGame::TRANSITION_RESULT)
 		{
+
 
 			//色の切り替わり間隔
 			m_nCntColor = 0;

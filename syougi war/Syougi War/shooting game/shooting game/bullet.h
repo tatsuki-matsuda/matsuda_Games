@@ -13,7 +13,7 @@
 //マクロ定義
 //--------------------------------------------------------------------------------
 #define NORMAL_DAMAGE		(4)								//通常弾ダメージ量
-#define BOMB_DAMAGE			(3)								//ボムダメージ量
+#define BOMB_DAMAGE			(2)								//ボムダメージ量
 #define HOMING_DAMAGE		(2)								//ホーミングダメージ量
 #define CROSSING_DAMAGE		(1)								//交差弾ダメージ量
 #define REFLECTIVE_DAMAGE	(1)								//反射弾ダメージ量

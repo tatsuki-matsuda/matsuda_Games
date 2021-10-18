@@ -251,8 +251,8 @@ void CGame::Update(void)
 	}
 
 	//”½ŽË’e‚ðŒ‚‚Â“G‚ð¶¬
-	//if (m_nEnemyTime == ENEMY_RESPAWNTIME + 5400)
-	if (pKeyBoard->GetTrigger(DIK_6) == true)
+	if (m_nEnemyTime == ENEMY_RESPAWNTIME + 5100)
+	//if (pKeyBoard->GetTrigger(DIK_6) == true)
 	{
 		m_pEnemy = CEnemy::Create(D3DXVECTOR3(420, -10, 0.0f), D3DXVECTOR3(100, 100, 0), D3DXVECTOR3(0, 0, 0), CEnemy::ENEMYTYPE_NONE,CEnemy::BOSSTYPE_REFLECTION_ALL);
 
