@@ -12,7 +12,7 @@
 //--------------------------------------------------------------------------------
 //マクロ定義
 //--------------------------------------------------------------------------------
-#define BULLET_LIFE			(5000)							//弾のライフ
+#define BULLET_LIFE			(10000)							//弾のライフ
 #define NORMAL_DAMAGE		(4)								//通常弾ダメージ量
 #define BOMB_DAMAGE			(2)								//ボムダメージ量
 #define HOMING_DAMAGE		(2)								//ホーミングダメージ量
@@ -57,15 +57,19 @@ public:
 		ATTACKTYPE_NONE = 0,			        
 		ATTACKTYPE_NORMAL,				        //通常弾
 		ATTACKTYPE_HOMING,				        //ホーミング
-		ATTACKTYPE_CROSSING,			        //交差
+		ATTACKTYPE_RIGHT_CROSSING,			    //右交差
+		ATTACKTYPE_LEFT_CROSSING,			    //左交差
 		ATTACKTYPE_ROTATION,			        //回転
 		ATTACKTYPE_REFLECTION,			        //反射
 		ATTACKTYPE_TURN,				        //折り返し
 		ATTACKTYPE_N_WAY1,				        //n_way弾1
 		ATTACKTYPE_N_WAY2,				        //n_way弾2
 		ATTACKTYPE_SPIRAL,				        //渦巻弾
-		ATTACKTYPE_ILLUSIN_RIGHT,				//右幻覚弾
-		ATTACKTYPE_ILLUSIN_LEFT,				//右幻覚弾
+		ATTACKTYPE_ILLUSIN_RIGHT_UP,			//右上移動幻覚弾
+		ATTACKTYPE_ILLUSIN_LEFT_UP,				//左上移動幻覚弾
+		ATTACKTYPE_ILLUSIN_RIGHT_DAWN,			//右下移動幻覚弾
+		ATTACKTYPE_ILLUSIN_LEFT_DAWN,			//左下移動幻覚弾
+		ATTACKTYPE_SCALEBULLET,					//巨大弾
 		ATTACKTYPE_BOMB,				        //ボム
 		ATTACKTYPE_MAX
 
@@ -143,9 +147,11 @@ private:
 	float m_fAngle;																				//	回転軸
 	float m_fAngleBomb;																			//	ボムの回転軸
 	float m_fAngleL;																			//	左回転軸
-	float m_fAngleR;																			//	右回転軸
+	float m_fAngleRot;																			//	右回転軸
 	float m_fLengthObj;																			//　弾に一番近いオブジェクトの位置
 
+	int m_nHomingCnt;																			//	追尾カウント
+	int m_nCrossingTime;																		//	交差角度カウント
 	int m_nCrossingTimeL;																		//	左交差時間
 	int m_nCrossingTimeR;																		//	右交差時間
 	int m_nReflectionCnt;																		//	反射カウント
@@ -156,10 +162,10 @@ private:
 	int m_nLife;																				//	体力
 	int m_nKeepObj;																				//	オブジェクトを保存する値
 	int m_nCntDraw;																				//　色変えカウント
-	int m_nCntSpiral = 0;																		//	渦巻カウント
-	int m_nBossRespawnCnt = 0;																	//　ボス出現カウント
-	int m_nIllusionRightCnt = 0;																//	右幻覚移動カウント
-	int m_nIllusionLeftCnt=0;																	//	左幻覚移動カウント
+	int m_nCntSpiral;																			//	渦巻カウント
+	int m_nBossRespawnCnt;																		//　ボス出現カウント
+	int m_nIllusionRightCnt;																	//	右幻覚移動カウント
+	int m_nIllusionLeftCnt;																		//	左幻覚移動カウント
 
 	static int m_nIllusionCnt;																	//	幻覚移動カウント
 		

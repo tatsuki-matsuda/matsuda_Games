@@ -58,8 +58,9 @@ public:
 		ENEMYTYPE_N_WAY1,				//n_way弾1を撃つ敵
 		ENEMYTYPE_N_WAY2,				//n_way弾2を撃つ敵
 		ENEMYTYPE_RUSH,					//突進する敵
-		ENEMYTYPE_ILLUSION_RIGHT,		//幻覚弾を撃つ敵
-		ENEMYTYPE_ILLUSION_LEFT,		//幻覚弾を撃つ敵
+		ENEMYTYPE_ILLUSION_RIGHT,		//右端から幻覚弾を撃つ敵
+		ENEMYTYPE_ILLUSION_LEFT,		//左端から幻覚弾を撃つ敵
+		ENEMYTYPE_SCALEBULLET,			//巨大弾を撃つ敵		
 		ENEMYTYPE_MAX
 
 	}ENEMYTYPE;
@@ -138,7 +139,6 @@ public:
 
 	CLifeGauge *GetLifeGauge(void) { return m_pLifeGauge; }						//体力ゲージの取得の呼び出し
 
-
 private:
 
 	void OnCollision(void);														// 判定処理
@@ -167,8 +167,7 @@ private:
 	int	 m_timer;																// 発射時間
 	int  m_nLife;																// 体力		
 	int	 m_nMaxLife;															// 出現時の体力
-	int  m_nIllusionRightCnt = 0;												//	右幻覚移動カウント
-	int  m_nIllusionLeftCnt = 0;												//	左幻覚移動カウント
+	int  m_nIllusionCnt;														// 幻覚弾を撃つ敵の生成カウント
 
 	float m_fangle;																// 角度
 	float m_fLength;															// 長さ

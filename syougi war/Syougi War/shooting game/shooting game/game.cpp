@@ -96,6 +96,7 @@ HRESULT CGame::Init(D3DXVECTOR3 pos, D3DXVECTOR3 scale)
 	// ƒ‰ƒCƒtƒNƒ‰ƒX‚Ì¶¬
 	m_pLife = CLife::Create(D3DXVECTOR3(1000.0f, 235.0f, 0.0f), D3DXVECTOR3(40.0f, 40.0f, 0.0f));
 
+	//ƒ{ƒ€ƒNƒ‰ƒX‚Ì¶¬
 	m_pBomb = CBomb::Create(D3DXVECTOR3(1000.0f, 295.0f, 0.0f), D3DXVECTOR3(40.0f, 40.0f, 0.0f));
 
 	//ƒiƒ“ƒo[ƒNƒ‰ƒX‚Ì¶¬
@@ -252,7 +253,7 @@ void CGame::Update(void)
 		m_pBossLifeCnt->AddBossLifeCnt(0);
 	}
 
-	//Œð·’e‚ðŒ‚‚Â“G‚ð¶¬
+	//‘S•ûˆÊŒð·’e‚ðŒ‚‚Â“G‚ð¶¬
 	if (pKeyBoard->GetTrigger(DIK_3) == true)
 	{
 		m_pEnemy = CEnemy::Create(D3DXVECTOR3(400, 250, 0.0f), D3DXVECTOR3(100, 100, 0), D3DXVECTOR3(0, 0, 0), CEnemy::ENEMYTYPE_NONE,CEnemy::BOSSTYPE_CROSSING);
@@ -337,8 +338,8 @@ void CGame::Update(void)
 	{
 		for (int nCnt = 0; nCnt <= 7; nCnt++)
 		{
-			m_pEnemy = CEnemy::Create(D3DXVECTOR3((70 + ((float)nCnt) * 100), 720.0f, 0.0f),
-				D3DXVECTOR3(45, 45, 0), D3DXVECTOR3(0.0f, -1.2f, 0), CEnemy::ENEMYTYPE_RUSH, CEnemy::BOSSTYPE_NONE);
+			m_pEnemy = CEnemy::Create(D3DXVECTOR3((70 + ((float)nCnt) * 100), 0.0f, 0.0f),
+				D3DXVECTOR3(45, 45, 0), D3DXVECTOR3(0.0f, 1.2f, 0), CEnemy::ENEMYTYPE_RUSH, CEnemy::BOSSTYPE_NONE);
 		}
 
 	}
@@ -349,8 +350,8 @@ void CGame::Update(void)
 	{
 		for (int nCnt = 0; nCnt <= 7; nCnt++)
 		{
-			m_pEnemy = CEnemy::Create(D3DXVECTOR3((40 + ((float)nCnt) * 100), 720.0f, 0.0f),
-				D3DXVECTOR3(45, 45, 0), D3DXVECTOR3(0.0f, -1.2f, 0), CEnemy::ENEMYTYPE_RUSH, CEnemy::BOSSTYPE_NONE);
+			m_pEnemy = CEnemy::Create(D3DXVECTOR3((40 + ((float)nCnt) * 100), 0.0f, 0.0f),
+				D3DXVECTOR3(45, 45, 0), D3DXVECTOR3(0.0f, 1.2f, 0), CEnemy::ENEMYTYPE_RUSH, CEnemy::BOSSTYPE_NONE);
 		}
 
 	}
@@ -359,19 +360,21 @@ void CGame::Update(void)
 	if (pKeyBoard->GetTrigger(DIK_I) == true)
 	//if (m_nCntBullet % 300 == 0)
 	{
-		for (int nCnt = 0; nCnt <= 1; nCnt++)
-		{
-			m_pEnemy = CEnemy::Create(D3DXVECTOR3((-200 + ((float)nCnt) * 200), 100, 0.0f), D3DXVECTOR3(30, 30, 0), D3DXVECTOR3(0, 0, 0), CEnemy::ENEMYTYPE_ILLUSION_LEFT, CEnemy::BOSSTYPE_NONE);
-		}
+		m_pEnemy = CEnemy::Create(D3DXVECTOR3(400, 200, 0.0f), D3DXVECTOR3(100, 100, 0), D3DXVECTOR3(0, 0, 0), CEnemy::ENEMYTYPE_NONE, CEnemy::BOSSTYPE_ILLUSION);
 
-		for (int nCnt = 0; nCnt <= 1; nCnt++)
-		{
-			m_pEnemy = CEnemy::Create(D3DXVECTOR3((1000 + ((float)nCnt) * -200), 100, 0.0f), D3DXVECTOR3(30, 30, 0), D3DXVECTOR3(0, 0, 0), CEnemy::ENEMYTYPE_ILLUSION_RIGHT, CEnemy::BOSSTYPE_NONE);
-		}
+	}
+
+	//’Ç”ö’e‚ðŒ‚‚Â“G‚ð¶¬
+	if (pKeyBoard->GetTrigger(DIK_M) == true)
+	{
+		m_pEnemy = CEnemy::Create(D3DXVECTOR3(400, 150, 0.0f), D3DXVECTOR3(25, 25, 0), D3DXVECTOR3(0, 0, 0), CEnemy::ENEMYTYPE_NORMAL2, CEnemy::BOSSTYPE_NONE);
+
 	}
 
 	//m_pBulletNum->SetScore(0);
+
 	int nCntBullet = 0;
+
 	for (int nCnt = 0; nCnt < MAX_POLYGON; nCnt++)
 	{
 		CScene *pScene = CScene::GetScene(OBJTYPE_BULLET,nCnt);

@@ -57,8 +57,6 @@ public:
 
 	void SetBg(float ScrollBg);										//背景スクロールの設定
 
-	void SetLife(float PosLife);									//体力アイコンの設定
-
 	void SetGaugePosition(D3DXVECTOR3 pos, D3DXVECTOR3 scale);		//ゲージの位置を取得
 
 	D3DXVECTOR3 GetScale(void) {return m_scale; }					//スケールの取得

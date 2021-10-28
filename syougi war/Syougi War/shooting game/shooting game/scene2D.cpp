@@ -63,36 +63,33 @@ HRESULT CScene2D::Init(D3DXVECTOR3 pos, D3DXVECTOR3 scale)
 	//頂点バッファをロックし、頂点情報へのポインタを取得
 	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
 
-	Length();
-
 	//位置を設定
 	m_pos = pos;
 
 	//大きさを設定
-	m_scale = scale;
+	m_scale = scale / 2.0f;
+
+	//点と中心点を図る処理
+	Length();
+
+	m_rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 
 	//位置を設定
-	pVtx[0].pos = D3DXVECTOR3(m_pos.x - m_scale.x / 2.0f, m_pos.y + m_scale.y / 2.0f, 0.0);
-	pVtx[1].pos = D3DXVECTOR3(m_pos.x - m_scale.x / 2.0f, m_pos.y - m_scale.y / 2.0f, 0.0);
-	pVtx[2].pos = D3DXVECTOR3(m_pos.x + m_scale.x / 2.0f, m_pos.y + m_scale.y / 2.0f, 0.0);
-	pVtx[3].pos = D3DXVECTOR3(m_pos.x + m_scale.x / 2.0f, m_pos.y - m_scale.y / 2.0f, 0.0);
+	pVtx[0].pos.x = m_pos.x - sinf(m_fAngle + m_rot.z)*(m_fLength);
+	pVtx[0].pos.y = m_pos.y + cosf(m_fAngle + m_rot.z)*(m_fLength);
+	pVtx[0].pos.z = 0.0f;
 
-	////あ
-	//pVtx[0].pos.x = m_pos.x - sinf(m_rot.z - m_fAngle)*m_fLength;
-	//pVtx[0].pos.y = m_pos.y - cosf(m_rot.z - m_fAngle)*m_fLength;
-	//pVtx[0].pos.z = 0.0;
+	pVtx[1].pos.x = m_pos.x - sinf(m_fAngle - m_rot.z)*(m_fLength);
+	pVtx[1].pos.y = m_pos.y - cosf(m_fAngle - m_rot.z)*(m_fLength);
+	pVtx[1].pos.z = 0.0f;
 
-	//pVtx[1].pos.x = m_pos.x + sinf(m_rot.z + m_fAngle)*m_fLength;
-	//pVtx[1].pos.y = m_pos.y + cosf(m_rot.z + m_fAngle)*m_fLength;
-	//pVtx[1].pos.z = 0.0;
+	pVtx[2].pos.x = m_pos.x + sinf(m_fAngle - m_rot.z)*(m_fLength);
+	pVtx[2].pos.y = m_pos.y + cosf(m_fAngle - m_rot.z)*(m_fLength);
+	pVtx[2].pos.z = 0.0f;
 
-	//pVtx[2].pos.x = m_pos.x - sinf(m_rot.z + m_fAngle)*m_fLength;
-	//pVtx[2].pos.y = m_pos.y - cosf(m_rot.z + m_fAngle)*m_fLength;
-	//pVtx[2].pos.z = 0.0;
-
-	//pVtx[3].pos.x = m_pos.x + sinf(m_rot.z - m_fAngle)*m_fLength;
-	//pVtx[3].pos.y = m_pos.y + cosf(m_rot.z - m_fAngle)*m_fLength;
-	//pVtx[3].pos.z = 0.0;
+	pVtx[3].pos.x = m_pos.x + sinf(m_fAngle + m_rot.z)*(m_fLength);
+	pVtx[3].pos.y = m_pos.y - cosf(m_fAngle + m_rot.z)*(m_fLength);
+	pVtx[3].pos.z = 0.0f;
 
 	// 頂点情報を設定
 	pVtx[0].tex = D3DXVECTOR2(0.0, 1.0);
@@ -171,7 +168,6 @@ CScene2D *CScene2D::Create(D3DXVECTOR3 pos, D3DXVECTOR3 scale)
 	CScene2D* pScene2D;
 	pScene2D = new CScene2D;
 
-
 	if (pScene2D != NULL)
 	{
 		pScene2D->Init(pos,scale);
@@ -181,7 +177,7 @@ CScene2D *CScene2D::Create(D3DXVECTOR3 pos, D3DXVECTOR3 scale)
 }
 
 //*****************************************************************************
-// 処理
+// 位置処理
 //*****************************************************************************
 D3DXVECTOR3 CScene2D::GetPosition(void)
 {
@@ -205,38 +201,22 @@ void CScene2D::SetPosition(D3DXVECTOR3 pos, D3DXVECTOR3 scale)
 	//頂点バッファをロックし、頂点情報へのポインタを取得
 	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
 
-	//プレイヤーの位置を設定
-	pVtx[0].pos = D3DXVECTOR3(m_pos.x - m_scale.x / 2.0f, m_pos.y + m_scale.y / 2.0f, 0.0);
-	pVtx[1].pos = D3DXVECTOR3(m_pos.x - m_scale.x / 2.0f, m_pos.y - m_scale.y / 2.0f, 0.0);
-	pVtx[2].pos = D3DXVECTOR3(m_pos.x + m_scale.x / 2.0f, m_pos.y + m_scale.y / 2.0f, 0.0);
-	pVtx[3].pos = D3DXVECTOR3(m_pos.x + m_scale.x / 2.0f, m_pos.y - m_scale.y / 2.0f, 0.0);
+	//位置を設定
+	pVtx[0].pos.x = m_pos.x - sinf(m_fAngle + m_rot.z)*(m_fLength);
+	pVtx[0].pos.y = m_pos.y + cosf(m_fAngle + m_rot.z)*(m_fLength);
+	pVtx[0].pos.z = 0.0f;
 
-	//頂点バッファをアンロックする
-	m_pVtxBuff->Unlock();
-}
+	pVtx[1].pos.x = m_pos.x - sinf(m_fAngle - m_rot.z)*(m_fLength);
+	pVtx[1].pos.y = m_pos.y - cosf(m_fAngle - m_rot.z)*(m_fLength);
+	pVtx[1].pos.z = 0.0f;
 
-//*****************************************************************************
-// 位置の設定処理
-//*****************************************************************************
-void CScene2D::SetGaugePosition(D3DXVECTOR3 pos, D3DXVECTOR3 scale)
-{
-	//位置の設定
-	m_pos = pos;
+	pVtx[2].pos.x = m_pos.x + sinf(m_fAngle - m_rot.z)*(m_fLength);
+	pVtx[2].pos.y = m_pos.y + cosf(m_fAngle - m_rot.z)*(m_fLength);
+	pVtx[2].pos.z = 0.0f;
 
-	//位置の設定
-	m_scale = scale;
-
-	//変数宣言
-	VERTEX_2D*pVtx;
-
-	//頂点バッファをロックし、頂点情報へのポインタを取得
-	m_pVtxBuff->Lock(0, 0, (void**)&pVtx, 0);
-
-	//プレイヤーの位置を設定
-	pVtx[0].pos = D3DXVECTOR3(m_pos.x, m_pos.y + m_scale.y / 2.0f, 0.0);
-	pVtx[1].pos = D3DXVECTOR3(m_pos.x, m_pos.y - m_scale.y / 2.0f, 0.0);
-	pVtx[2].pos = D3DXVECTOR3(m_pos.x + m_scale.x, m_pos.y + m_scale.y / 2.0f, 0.0);
-	pVtx[3].pos = D3DXVECTOR3(m_pos.x + m_scale.x, m_pos.y - m_scale.y / 2.0f, 0.0);
+	pVtx[3].pos.x = m_pos.x + sinf(m_fAngle + m_rot.z)*(m_fLength);
+	pVtx[3].pos.y = m_pos.y - cosf(m_fAngle + m_rot.z)*(m_fLength);
+	pVtx[3].pos.z = 0.0f;
 
 	//頂点バッファをアンロックする
 	m_pVtxBuff->Unlock();
@@ -311,8 +291,10 @@ void CScene2D::SetColor(D3DXCOLOR color)
 //*****************************************************************************
 void CScene2D::Length(void)
 {
-	m_fLength = sqrtf((m_scale.x) * (m_scale.x) + (m_scale.y) * (m_scale.y));
+	//中心点と点との距離
+	m_fLength = sqrtf(m_scale.x * m_scale.x + m_scale.y * m_scale.y);
 
+	//角度
 	m_fAngle = atan2f(m_scale.x, m_scale.y);
 }
 

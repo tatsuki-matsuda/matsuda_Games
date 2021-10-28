@@ -124,12 +124,7 @@ void CLife::Update(void)
 	CScore *pScore;
 	pScore = CGame::GetScore();
 
-	//対角線の長さ
-	m_angle = sqrtf(15 * 15 + 15 * 15);
-
-	//対角線の角度
-	float fAngle = atan2f(5, 5);
-
+	//残機分数を増やす
 	for (int nCntLife = 0; nCntLife < m_nLife; nCntLife++)
 	{
 		if (m_apScene2D[nCntLife] != NULL)
@@ -141,10 +136,13 @@ void CLife::Update(void)
 	// 遷移するかどうか
 	if (m_nLife == 0)
 	{
+		//遷移カウント
 		m_nCntTime++;
 
+		//カウントが一定値を超えた場合
 		if (m_nCntTime > 120)
 		{
+			//リザルトへ遷移
 			CGame::SetTransition(CGame::TRANSITION_RESULT);
 		}
 		

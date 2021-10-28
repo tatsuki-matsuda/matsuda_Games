@@ -5,6 +5,7 @@
 //
 //=============================================================================
 #include "fade.h"
+#include "sound.h"
 
 //*****************************************************************************
 // Ã“Iƒƒ“ƒo•Ï”‚Ì‰Šú‰»
@@ -81,14 +82,17 @@ void CFade::Update(void)
 	{
 		m_Color.a -= 0.05f;
 
+
 		if (m_Color.a <= 0.0f)
 		{
 			m_Fade = FADE_NONE;
+
 		}
 	}
 	else if (m_Fade == FADE_OUT)
 	{
 		m_Color.a += 0.05f;
+
 		if (m_Color.a >= 1.0f)
 		{
 			m_Fade = FADE_IN;

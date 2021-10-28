@@ -1,8 +1,8 @@
-﻿  logo.cpp
+﻿  enemy.cpp
   コード生成しています。
-  63 of 382 functions (16.5%) were compiled, the rest were copied from previous compilation.
+  53 of 383 functions (13.8%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    15 functions had inline decision re-evaluated but remain unchanged
+    13 functions had inline decision re-evaluated but remain unchanged
   コード生成が終了しました。
   shooting game.vcxproj -> C:\Users\student\Documents\Visual Studio 2015\Projects\Syougi War\shooting game\x64\Release\shooting game.exe
   shooting game.vcxproj -> C:\Users\student\Documents\Visual Studio 2015\Projects\Syougi War\shooting game\x64\Release\shooting game.pdb (Full PDB)

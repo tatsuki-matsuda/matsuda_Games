@@ -200,6 +200,7 @@ void CPause::Update(void)
 				CManager::SetPause(false);
 				pFade->SetFade(CFade::FADE_OUT, CManager::MODE_GAME);
 
+
 			break;
 
 			case PAUSEUI_TITLE:

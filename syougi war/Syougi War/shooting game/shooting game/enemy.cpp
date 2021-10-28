@@ -101,24 +101,17 @@ HRESULT CEnemy::Init(D3DXVECTOR3 pos, D3DXVECTOR3 scale, D3DXVECTOR3 move)
 	//雑魚敵の体力管理//
 
 	//通常弾1を撃つ敵
-	if (m_EnemyType == ENEMYTYPE_ILLUSION_LEFT)
-	{
-		//体力値の設定
-		m_nLife = ENEMY_LIFE + 100;
-	}
-
-	//通常弾1を撃つ敵
-	if (m_EnemyType == ENEMYTYPE_ILLUSION_RIGHT)
-	{
-		//体力値の設定
-		m_nLife = ENEMY_LIFE + 100;
-	}
-
-	//通常弾1を撃つ敵
 	if (m_EnemyType == ENEMYTYPE_NORMAL1)
 	{
 		//体力値の設定
 		m_nLife = ENEMY_LIFE + 100;
+	}
+
+	//通常弾1を撃つ敵
+	if (m_EnemyType == ENEMYTYPE_NORMAL2)
+	{
+		//体力値の設定
+		m_nLife = ENEMY_LIFE + 300;
 	}
 
 	//通常弾3を撃つ敵
@@ -170,6 +163,26 @@ HRESULT CEnemy::Init(D3DXVECTOR3 pos, D3DXVECTOR3 scale, D3DXVECTOR3 move)
 		m_nLife = ENEMY_MINLIFE + 30;
 	}
 
+	//左端から幻覚弾を撃つ敵
+	if (m_EnemyType == ENEMYTYPE_ILLUSION_LEFT)
+	{
+		//体力値の設定
+		m_nLife = ENEMY_LIFE + 200;
+	}
+
+	//右端から幻覚弾を撃つ敵
+	if (m_EnemyType == ENEMYTYPE_ILLUSION_RIGHT)
+	{
+		//体力値の設定
+		m_nLife = ENEMY_LIFE + 200;
+	}
+
+	//巨大弾を撃つ敵
+	if (m_EnemyType == ENEMYTYPE_SCALEBULLET)
+	{
+		//体力値の設定
+		m_nLife = BOSS_LIFE;
+	}
 
 	//ボスの体力管理及びゲージ処理//
 
@@ -224,6 +237,16 @@ HRESULT CEnemy::Init(D3DXVECTOR3 pos, D3DXVECTOR3 scale, D3DXVECTOR3 move)
 		m_pLifeGauge = CLifeGauge::Create(D3DXVECTOR3(80.0f, 30.0f, 0.0f), D3DXVECTOR3(0.0f, 15.0f, 0.0f), m_nLife);
 	}
 
+	//幻覚弾を撃つボス
+	if (m_BossType == BOSSTYPE_ILLUSION)
+	{
+		//体力値の設定
+		m_nLife = BOSS_LASTLIFE;
+
+		//ゲージの生成
+		m_pLifeGauge = CLifeGauge::Create(D3DXVECTOR3(80.0f, 30.0f, 0.0f), D3DXVECTOR3(0.0f, 15.0f, 0.0f), m_nLife);
+	}
+
 	//つかわれてるかどうか
 	m_bUninit = false;
 
@@ -264,7 +287,10 @@ HRESULT CEnemy::Init(D3DXVECTOR3 pos, D3DXVECTOR3 scale, D3DXVECTOR3 move)
 	m_posDeath = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 
 	//通常敵の移動カウント
-	m_nNormalEnemyMove=0;
+	m_nNormalEnemyMove = 0;
+
+	// 幻覚弾を撃つ敵の生成カウント
+	m_nIllusionCnt = 0;
 
 	//　出現時の体力を保存
 	m_nMaxLife = m_nLife;
@@ -294,6 +320,9 @@ void CEnemy::Update(void)
 	D3DXVECTOR3 pos;
 	pos = GetPosition();
 
+	//角度の取得
+	D3DXVECTOR3 rot = GetRot();
+
 	//スコアの取得
 	CScore *pScore;
 	pScore = CGame::GetScore();
@@ -302,7 +331,14 @@ void CEnemy::Update(void)
 	CLifeBoss *pLifeboss;
 	pLifeboss = CGame::GetBossLifeCnt();
 
+	//サウンドのポインタ
+	CSound *pSound = CManager::GetSound();
+
+	//敵の状態
 	EnemyState();
+
+	//角度
+	rot.z = D3DX_PI / 1.0f;
 
 	//対角線の長さ
 	m_fangle = sqrtf(15 * 15 + 15 * 15);
@@ -313,11 +349,10 @@ void CEnemy::Update(void)
 	//発射時間
 	m_timer++;
 
-	//サウンドのポインタ
-	CSound *pSound = CManager::GetSound();
-
+	//色切り替えカウント
 	m_nCntColor++;
 
+	//敵出現カウント
 	m_nEnemyAppearanceCnt++;
 
 	//当たり判定
@@ -404,63 +439,47 @@ void CEnemy::Update(void)
 		
 	}
 
-	//敵の種類が通常弾2を撃つ敵の場合
+	//敵の種類が通常追尾弾を撃つ敵の場合
 	if (m_EnemyType == ENEMYTYPE_NORMAL2)
 	{
-		//if ((pos.y + m_scale.x / 2.0) <= 0.0f&&m_nEnemymoveCnt <= 0)
-		//{
-		//	m_move.y *= 1;
-		//}
+		//敵のテクスチャ
+		BindTexture(m_pTexture[3]);
 
-		//for (int nCnt = 0; nCnt < 2; nCnt++)
-		//{
-		//	if ((pos.y + m_scale.x / 2.0) >= 300.0f - (70 * (float)nCnt) && m_nEnemymoveCnt <= 20)
-		//	{
-		//		m_move.y = 0;
+		//色を変える
+		m_Color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 
-		//		//カウント
-		//		if (m_timer % 20 == 0)
-		//		{
-		//			////ホーミング弾の生成
-		//			//CNormal_Bullet::Create(D3DXVECTOR3(pos.x, pos.y + 10, pos.z), D3DXVECTOR3(20, 20, 0),
-		//			//	D3DXVECTOR3(sinf(D3DX_PI * 1.0f * ((float)nCnt / (float)10)) * 5, cosf(D3DX_PI * 1.0f * ((float)nCnt / (float)10)) * 5, 0),
-		//			//	D3DXVECTOR3(0, 0, 0), CBullet::BULLETTYPE_ENEMY, CBullet::ATTACKTYPE_HOMING, CBullet::INFOTYPE_1);
+		//値を増加させる
+		m_nCntTime++;
 
-		//			m_nEnemymoveCnt++;
-		//		}
-		//	}
-		//}
+		//カウントが指定値で割ると0になる場合
+		if (m_nCntTime % 120 == 0)
+		{
+			//弾の生成
+			CNormal_Bullet::Create(D3DXVECTOR3(pos.x, pos.y, pos.z), D3DXVECTOR3(25, 25, 0),
+				D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(0, 0, 0),
+				CBullet::BULLETTYPE_ENEMY, CBullet::ATTACKTYPE_HOMING, CBullet::INFOTYPE_1);
+		}
 
-		//if (m_nEnemymoveCnt >= 20)
-		//{
+		//体力が0以下になった場合
+		if (m_nLife <= 0)
+		{
+			//敵の消滅
+			m_bUninit = true;
 
-		//	if (m_timer % 120 == 0)
-		//	{
-		//		m_move.y = -2;
-		//	}
+			//爆発の生成
+			CExplosion::Create(pos, D3DXVECTOR3(50, 50, 0));
 
-		//	if ((pos.y + m_scale.x / 2.0) <= 0.0f)
-		//	{
-		//		//敵の消滅
-		//		m_bUninit = true;
-		//	}
-		//}
+			//スコアを加算
+			pScore->AddScore(1000);
 
-		////体力が0以下になった場合
-		//if (m_nLife <= 0)
-		//{
-		//	//敵の消滅
-		//	m_bUninit = true;
+			//爆発音
+			pSound->PlaySoundA(CSound::SOUND_LABEL_SE_EXPLOSION);
 
-		//	Uninit();
+			//終了処理の呼び出し
+			Uninit();
 
-		//	//爆発の生成
-		//	CExplosion::Create(pos, D3DXVECTOR3(50, 50, 0));
-
-		//	pScore->AddScore(200);
-
-		//	return;
-		//}
+			return;
+		}
 	}
 
 	//敵の種類が右側から通常弾3を撃つ敵の場合
@@ -804,45 +823,6 @@ void CEnemy::Update(void)
 		}
 	}
 
-	//敵の種類が追従弾を撃つ敵の場合
-	if (m_EnemyType == ENEMYTYPE_HOMING)
-	{
-		////移動
-		//if ((pos.x + m_scale.x / 2.0f) >= SCREEN_WIDTH - 400)
-		//{
-		//	m_move.x *= -1;
-		//}
-
-		//if (pos.x - m_scale.x / 2.0f <= 0.0f)
-		//{
-		//	m_move.x *= -1;
-		//}
-
-		////カウント
-		//if (m_timer % 120 == 0)
-		//{
-		//	//弾の生成
-		//	CBullet::Create(D3DXVECTOR3(pos.x, pos.y + 50, pos.z), D3DXVECTOR3(20, 20, 0), D3DXVECTOR3(0, 10, 0),
-		//		D3DXVECTOR3(0, 0, 0), CBullet::BULLETTYPE_ENEMY, CBullet::ATTACKTYPE_HOMING, CBullet::INFOTYPE_1);
-		//}
-
-		////体力が0以下になった場合
-		//if (m_nLife <= 0)
-		//{
-		//	//敵の消滅
-		//	m_bUninit = true;
-
-		//	Uninit();
-
-		//	//爆発の生成
-		//	CExplosion::Create(pos, D3DXVECTOR3(50, 50, 0));
-
-		//	pScore->AddScore(200);
-
-		//	return;
-		//}
-	}
-
 	//敵の種類が全方位折り返し弾を撃つ敵の場合
 	if (m_EnemyType == ENEMYTYPE_TURN)
 	{
@@ -967,7 +947,7 @@ void CEnemy::Update(void)
 		}
 	}
 
-	//敵の種類がn_way1弾を撃つ敵の場合
+	//敵の種類がn_way2弾を撃つ敵の場合
 	if (m_EnemyType == ENEMYTYPE_N_WAY2)
 	{
 		BindTexture(m_pTexture[2]);
@@ -1015,9 +995,6 @@ void CEnemy::Update(void)
 
 		}
 
-
-
-
 		//下に行くまで
 		if ((pos.y + m_scale.y / 2.0f) <= 0.0f&&m_nEnemymoveCnt > 1000)
 		{
@@ -1034,13 +1011,16 @@ void CEnemy::Update(void)
 			//爆発音
 			pSound->PlaySoundA(CSound::SOUND_LABEL_SE_EXPLOSION);
 
+			//終了処理の呼び出し
 			Uninit();
 
 			//爆発の生成
 			CExplosion::Create(pos, D3DXVECTOR3(50, 50, 0));
 
+			//スコアの加算
 			pScore->AddScore(4000);
 
+			//値を返す
 			return;
 		}
 	}
@@ -1100,7 +1080,7 @@ void CEnemy::Update(void)
 			//突進攻撃
 			if (m_nEnemymoveCnt >= 300)
 			{
-				m_move.y = -20.0f;
+				m_move.y = +20.0f;
 			}
 		}
 
@@ -1131,7 +1111,7 @@ void CEnemy::Update(void)
 				{
 					if (m_nEnemymoveCnt % 2 == 0)
 					{
-						m_move.y = -1.0f;
+						m_move.y = -0.8f;
 					}
 
 					if (m_nEnemymoveCnt % 3 == 0)
@@ -1148,7 +1128,7 @@ void CEnemy::Update(void)
 			}
 		}
 
-		if (m_nEnemymoveCnt > 700)
+		if (m_nEnemymoveCnt > 500)
 		{
 			m_bUninit = true;
 		}
@@ -1173,6 +1153,51 @@ void CEnemy::Update(void)
 		}
 	}
 
+	//敵の種類が巨大弾を撃つ敵の場合
+	if (m_EnemyType == ENEMYTYPE_SCALEBULLET)
+	{
+		//敵のテクスチャ
+		BindTexture(m_pTexture[3]);
+
+		//色を変える
+		m_Color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+
+		//値を増加させる
+		m_nCntTime++;
+
+		//カウントが指定値で割ると0になる場合
+		if (m_nCntTime % 30 == 0)
+		{
+			//弾の生成
+			CNormal_Bullet::Create(D3DXVECTOR3(pos.x, pos.y, pos.z), D3DXVECTOR3(25, 25, 0),
+				D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(0, 0, 0),
+				CBullet::BULLETTYPE_ENEMY, CBullet::ATTACKTYPE_SCALEBULLET, CBullet::INFOTYPE_1);
+		}
+
+		//体力が0以下になった場合
+		if (m_nLife <= 0)
+		{
+			//敵の消滅
+			m_bUninit = true;
+
+			//爆発の生成
+			CExplosion::Create(pos, D3DXVECTOR3(50, 50, 0));
+
+			//スコアを加算
+			pScore->AddScore(1000);
+
+			//爆発音
+			pSound->PlaySoundA(CSound::SOUND_LABEL_SE_EXPLOSION);
+
+			//終了処理の呼び出し
+			Uninit();
+
+			//値を返す
+			return;
+		}
+	}
+
+
 	//ボスの行動処理//
 
 	//ボスの種類が全方位交差弾を撃つ敵の場合
@@ -1186,13 +1211,13 @@ void CEnemy::Update(void)
 		m_Craetepos[2] = D3DXVECTOR3(pos.x - 5, pos.y, 0);
 		m_Craetepos[3] = D3DXVECTOR3(pos.x + 6, pos.y, 0);
 
-
-		if (m_timer % 320 == 0)
+		//タイマーが指定値で割ると0になる場合
+		if (m_timer % 200 == 0)
 		{
 			//カウント
 			if (((float)m_nLife > (float)m_nMaxLife *0.75f))
 			{
-				//カウント
+				//カウントが指定値より小さい場合
 				if (m_nCntMadness < 8)
 				{
 					//敵の位置を参照して弾を生成
@@ -1201,12 +1226,12 @@ void CEnemy::Update(void)
 
 			}
 
+			//カウント増加
 			m_nCntMadness++;
 		}
 
 		//発狂処理
 		OnMadnessBullet();
-
 
 		//体力が0以下になった場合
 		if (m_nLife <= 0)
@@ -1214,16 +1239,19 @@ void CEnemy::Update(void)
 			//敵の消滅
 			m_bUninit = true;
 
+			//終了処理の呼び出し
 			Uninit();
 
 			//爆発の生成
 			CExplosion::Create(pos, D3DXVECTOR3(50, 50, 0));
 
+			//スコアの加算
 			pScore->AddScore(40000);
 
 			//爆発音
 			pSound->PlaySoundA(CSound::SOUND_LABEL_SE_EXPLOSION);
 
+			//値を返す
 			return;
 		}
 
@@ -1233,7 +1261,6 @@ void CEnemy::Update(void)
 	//ボスの種類が全方位反射弾を撃つ敵の場合
 	if (m_BossType == BOSSTYPE_REFLECTION_ALL)
 	{
-
 		//敵のテクスチャ
 		BindTexture(m_pTexture[4]);
 
@@ -1291,9 +1318,10 @@ void CEnemy::Update(void)
 				m_move.x = 0.0f;
 				m_move.y = 0.0f;
 
-				//カウントが一定の値で0になる場合
+				//カウントが指定値で割ると0になる場合
 				if (m_nCntMadness % 3 == 0)
 				{
+					//カウントが指定値より小さいかつ現在の体力値が最大体力値の75%以上分ある場合
 					if (m_nCntMadness <= 15 && (float)m_nLife >= (float)m_nMaxLife *0.75f)
 					{
 						//敵の位置を参照して弾を生成
@@ -1327,11 +1355,13 @@ void CEnemy::Update(void)
 				//スコアの加算
 				pScore->AddScore(180000);
 
+				//残りライフゲージカウントを1減らす
 				pLifeboss->AddBossLifeCnt(-1);
 
 				//上下反射弾敵の生成
 				Create(m_posDeath, D3DXVECTOR3(100, 100, 0), D3DXVECTOR3(0, 0, 0), ENEMYTYPE_NONE, BOSSTYPE_REFLECTION_VERTICAL);
 
+				//値を返す
 				return;
 			}
 		}
@@ -1340,10 +1370,10 @@ void CEnemy::Update(void)
 	//ボスの種類が上下反射弾を撃つ敵の場合
 	if (m_BossType == BOSSTYPE_REFLECTION_VERTICAL)
 	{
-		//敵のテクスチャ
+		//テクスチャ
 		BindTexture(m_pTexture[4]);
 
-
+		//カウントが一定値より低い場合
 		if (m_nEnemymoveCnt <= 1)
 		{
 			//生成座標
@@ -1364,7 +1394,7 @@ void CEnemy::Update(void)
 		float moveX = sinf(fAngle)*1.5f;
 		float moveY = cosf(fAngle)*1.5f;
 
-		//値を移動値に換算
+		//移動値を値と同じにする
 		m_move.x = moveX;
 		m_move.y = moveY;
 
@@ -1374,20 +1404,25 @@ void CEnemy::Update(void)
 		//座標が指定された座標の範囲を超えた場合
 		if (fLengthObj <= m_fLength)
 		{
+			//移動値
 			m_move.x = 0;
 			m_move.y = 0;
 
+			//カウント
 			m_nEnemymoveCnt++;
 		}
 		
+		//カウントが一定値を超えた場合
 		if (m_nEnemymoveCnt >= 1)
 		{
 			//座標の設定
 			if (m_timer % 130 == 0)
 			{
+				//弾用の生成座標
 				m_Craetepos[0] = D3DXVECTOR3(pos.x, pos.y, 0);
 				m_Craetepos[1] = D3DXVECTOR3(pos.x + 15, pos.y, 0);
-
+					
+				//弾の生成処理
 				OnDiffuesPos(m_Craetepos[rand() % 2], m_move);
 			}
 		}
@@ -1398,6 +1433,7 @@ void CEnemy::Update(void)
 			//敵の消滅
 			m_bUninit = true;
 
+			//終了処理の呼び出し
 			Uninit();
 
 			//消滅した位置を保存
@@ -1406,18 +1442,22 @@ void CEnemy::Update(void)
 			//爆発の生成
 			CExplosion::Create(pos, D3DXVECTOR3(50, 50, 0));
 
+			//スコアを加算
 			pScore->AddScore(60000);
 
 			//爆発音
 			pSound->PlaySoundA(CSound::SOUND_LABEL_SE_EXPLOSION);
 
+			//カウント
 			m_nBulletStartCnt = 0;
 
 			//渦巻弾弾敵の生成
 			Create(m_posDeath, D3DXVECTOR3(100, 100, 0), D3DXVECTOR3(0, 0, 0), ENEMYTYPE_NONE, BOSSTYPE_SPIRAL);
 
+			//残りライフゲージカウントを1減らす
 			pLifeboss->AddBossLifeCnt(-1);
 
+			//値を返す
 			return;
 		}
 	}
@@ -1425,8 +1465,10 @@ void CEnemy::Update(void)
 	//ボスの種類が渦巻弾を撃つ敵だった場合
 	if (m_BossType == BOSSTYPE_SPIRAL)
 	{
+		//テクスチャ
 		BindTexture(m_pTexture[4]);
 
+		//カウントが一定値より低い場合
 		if (m_nEnemymoveCnt <= 1)
 		{
 			//生成座標
@@ -1440,13 +1482,15 @@ void CEnemy::Update(void)
 		float VectorX = m_posBoss.x - pos.x;
 		float VectorY = m_posBoss.y - pos.y;
 		float fAngle = atan2f(VectorX, VectorY);
+
+		//範囲計算
 		float fLengthObj = sqrtf(VectorX*VectorX + VectorY*VectorY);
 
 		//値を代入
 		float moveX = sinf(fAngle)*1.5f;
 		float moveY = cosf(fAngle)*1.5f;
 
-		//値を移動値に換算
+		//移動値を値と同じにする
 		m_move.x = moveX;
 		m_move.y = moveY;
 
@@ -1456,19 +1500,23 @@ void CEnemy::Update(void)
 		//座標が指定された座標の範囲を超えた場合
 		if (fLengthObj <= m_fLength)
 		{
+			//移動値
 			m_move.x = 0;
 			m_move.y = 0;
 
+			//カウント
 			m_nEnemyCnt++;
 		}
 
+
+		//カウントが値を超えた場合
 		if (m_nEnemyCnt >= 20)
 		{
 			if (m_timer % 2 == 0)
-			{
-
+			{//タイマーが0になる場合
 				if (m_timer % 5 == 0)
-				{
+				{//タイマーが0になる場合
+
 					//渦巻弾の生成
 					CNormal_Bullet::Create(D3DXVECTOR3(pos.x, pos.y, pos.z), D3DXVECTOR3(30, 30, 0),
 						D3DXVECTOR3(sinf(D3DX_PI * 2.0f * ((float)m_nEnemymoveCnt / (float)40)) * 2.0f, cosf(D3DX_PI * 2.0f * ((float)m_nEnemymoveCnt / (float)40)) * 2.0f, 0),
@@ -1478,23 +1526,21 @@ void CEnemy::Update(void)
 					m_nCntMadness++;
 				}
 
-
-
-
+				//カウントが値を超えた場合
 				if (m_nEnemymoveCnt > 12 + m_nCntTime - 4)
 				{
-					m_nEnemymoveCnt = 0 + m_nCntTime;
+					//カウント同士の値を同じにする
+					m_nEnemymoveCnt = m_nCntTime;
 
+					//カウントに値を与える
 					m_nCntTime += 5;
 				}
-
 
 				//発狂処理
 				OnMadnessBullet();
 
+				//移動カウント	
 				m_nEnemymoveCnt++;
-
-
 			}
 		}
 
@@ -1512,54 +1558,104 @@ void CEnemy::Update(void)
 
 			//爆発の生成
 			CExplosion::Create(pos, D3DXVECTOR3(50, 50, 0));
-
+				
+			//スコアを加算
 			pScore->AddScore(320000);
 
+			//残りライフゲージカウントを消す
 			pLifeboss->Uninit();
 
 			//リザルトへ移動
 			CFade::SetFade(CFade::FADE_OUT, CManager::MODE_RESULT);
 
+			//値を返す
 			return;
 		}
 
 	}
 
-	//敵の種類が右側から幻覚弾を撃つ敵の場合
-	if (m_EnemyType == ENEMYTYPE_ILLUSION_LEFT)
+	//ボスの種類が幻覚弾を撃つ敵を呼び出す敵だった場合
+	if (m_BossType == BOSSTYPE_ILLUSION)
 	{
-	
+		//幻覚弾を撃つ敵の生成カウント
+		m_nIllusionCnt++;
+
 		//敵のテクスチャ
 		BindTexture(m_pTexture[4]);
 
+		//カウントが指定値で割ると0になる場合
+		if (m_nIllusionCnt % 600 == 0)
+		{
+			//位置を指定して敵を生成
+			for (int nCnt = 0; nCnt <= 1; nCnt++)
+			{
+				//敵の生成
+				Create(D3DXVECTOR3((1000 + ((float)nCnt) * -200), 345, 0.0f), D3DXVECTOR3(30, 30, 0), D3DXVECTOR3(-1.0f, 0, 0), CEnemy::ENEMYTYPE_ILLUSION_RIGHT, CEnemy::BOSSTYPE_NONE);
+
+				Create(D3DXVECTOR3((-180 + ((float)nCnt) * 200), 360, 0.0f), D3DXVECTOR3(30, 30, 0), D3DXVECTOR3(1.0f, 0, 0), CEnemy::ENEMYTYPE_ILLUSION_LEFT, CEnemy::BOSSTYPE_NONE);
+			}
+		}
+
+		//体力が0以下になった場合
+		if (m_nLife <= 0)
+		{
+			//敵の消滅
+			m_bUninit = true;
+
+			//爆発の生成
+			CExplosion::Create(pos, D3DXVECTOR3(50, 50, 0));
+
+			//スコアの加算
+			pScore->AddScore(50000);
+
+			//爆発音
+			pSound->PlaySoundA(CSound::SOUND_LABEL_SE_EXPLOSION);
+
+			//終了処理の呼び出し
+			Uninit();
+
+			//値を返す
+			return;
+		}
+	}
+
+	//敵の種類が左側から幻覚弾を撃つ敵の場合
+	if (m_EnemyType == ENEMYTYPE_ILLUSION_LEFT)
+	{
+		//敵のテクスチャ
+		BindTexture(m_pTexture[0]);
+
+		//色
+		m_Color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.5f);
+
 		//カウントが指定値よりも低い場合
-		if (m_nCntTime <= 10)
+		if (m_nCntTime <= 5)
 		{
 			//タイマーが一定値で割ると0になる場合
-			if (CGame::m_nCntBullet % 15 == 0)
+			if (CGame::m_nCntBullet % 30 == 0)
 			{
-				////弾の生成
-				//CNormal_Bullet::Create(D3DXVECTOR3(pos.x, pos.y, pos.z), D3DXVECTOR3(25, 25, 0),
-				//	D3DXVECTOR3(0.0f, 0.0, 0), D3DXVECTOR3(0, 0, 0),
-				//	CBullet::BULLETTYPE_ENEMY, CBullet::ATTACKTYPE_ILLUSIN_LEFT, CBullet::INFOTYPE_1);
+				//弾の生成
+				CNormal_Bullet::Create(D3DXVECTOR3(pos.x, pos.y, pos.z), D3DXVECTOR3(25, 25, 0),
+					D3DXVECTOR3(0.0f, 0.0, 0), D3DXVECTOR3(0, 0, 0),
+					CBullet::BULLETTYPE_ENEMY, CBullet::ATTACKTYPE_ILLUSIN_LEFT_UP, CBullet::INFOTYPE_2);
 
 				//弾の生成
 				CNormal_Bullet::Create(D3DXVECTOR3(pos.x, pos.y, pos.z), D3DXVECTOR3(25, 25, 0),
 					D3DXVECTOR3(0.0f, 0.0, 0), D3DXVECTOR3(0, 0, 0),
-					CBullet::BULLETTYPE_ENEMY, CBullet::ATTACKTYPE_ILLUSIN_LEFT, CBullet::INFOTYPE_1);
+					CBullet::BULLETTYPE_ENEMY, CBullet::ATTACKTYPE_ILLUSIN_LEFT_DAWN, CBullet::INFOTYPE_2);
 
 				//移動値
-				m_move= D3DXVECTOR3(1.0f, 0.0f, 0.0f);
+				m_move = D3DXVECTOR3(1.0f, 0.0f, 0.0f);
 
 				//値を増加させる
 				m_nCntTime++;
 			}
 		}
-		else if(m_nCntTime > 10)
-		{
-			//移動値
-			m_move = D3DXVECTOR3(0.0f,0.0f,0.0f);
+		else if (m_nCntTime > 5)
+		{//カウントが指定値を上回った場合
 
+			//移動値
+			m_move = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 		}
 
 		//タイマーが一定値で割ると0になる場合
@@ -1569,13 +1665,15 @@ void CEnemy::Update(void)
 			m_nCntTime = 0;
 		}
 
-		if ((pos.y + m_scale.x / 2.0) >= SCREEN_HEIGHT)
+		//画面右端に移動した場合
+		if ((pos.x + m_scale.x / 2.0) >= SCREEN_GAMEWIDTH)
 		{
 			//敵の消滅
 			m_bUninit = true;
 		}
+
 		//体力が0以下になった場合
-		else if (m_nLife <= 0)
+		if (m_nLife <= 0)
 		{
 			//敵の消滅
 			m_bUninit = true;
@@ -1583,6 +1681,7 @@ void CEnemy::Update(void)
 			//爆発の生成
 			CExplosion::Create(pos, D3DXVECTOR3(50, 50, 0));
 
+			//スコアを加算
 			pScore->AddScore(1000);
 
 			//爆発音
@@ -1591,6 +1690,7 @@ void CEnemy::Update(void)
 			//終了処理の呼び出し
 			Uninit();
 
+			//値を返す
 			return;
 		}
 	}
@@ -1598,9 +1698,11 @@ void CEnemy::Update(void)
 	//敵の種類が右側から幻覚弾を撃つ敵の場合
 	if (m_EnemyType == ENEMYTYPE_ILLUSION_RIGHT)
 	{
-
 		//敵のテクスチャ
-		BindTexture(m_pTexture[4]);
+		BindTexture(m_pTexture[0]);
+
+		//色を変える
+		m_Color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.5f);
 
 		//カウントが指定値よりも低い場合
 		if (m_nCntTime <= 10)
@@ -1608,15 +1710,15 @@ void CEnemy::Update(void)
 			//タイマーが一定値で割ると0になる場合
 			if (CGame::m_nCntBullet % 15 == 0)
 			{
-				////弾の生成
-				//CNormal_Bullet::Create(D3DXVECTOR3(pos.x, pos.y, pos.z), D3DXVECTOR3(25, 25, 0),
-				//	D3DXVECTOR3(0.0f, 0.0, 0), D3DXVECTOR3(0, 0, 0),
-				//	CBullet::BULLETTYPE_ENEMY, CBullet::ATTACKTYPE_ILLUSIN_LEFT, CBullet::INFOTYPE_1);
+				//弾の生成
+				CNormal_Bullet::Create(D3DXVECTOR3(pos.x, pos.y, pos.z), D3DXVECTOR3(25, 25, 0),
+					D3DXVECTOR3(0.0f, 0.0, 0), D3DXVECTOR3(0, 0, 0),
+					CBullet::BULLETTYPE_ENEMY, CBullet::ATTACKTYPE_ILLUSIN_RIGHT_UP, CBullet::INFOTYPE_1);
 
 				//弾の生成
 				CNormal_Bullet::Create(D3DXVECTOR3(pos.x, pos.y, pos.z), D3DXVECTOR3(25, 25, 0),
 					D3DXVECTOR3(0.0f, 0.0, 0), D3DXVECTOR3(0, 0, 0),
-					CBullet::BULLETTYPE_ENEMY, CBullet::ATTACKTYPE_ILLUSIN_RIGHT, CBullet::INFOTYPE_1);
+					CBullet::BULLETTYPE_ENEMY, CBullet::ATTACKTYPE_ILLUSIN_RIGHT_DAWN, CBullet::INFOTYPE_1);
 
 				//移動値
 				m_move = D3DXVECTOR3(-1.0f, 0.0f, 0.0f);
@@ -1625,8 +1727,9 @@ void CEnemy::Update(void)
 				m_nCntTime++;
 			}
 		}
-		else if (m_nCntTime > 10)
-		{
+		else if (m_nCntTime > 5)
+		{//カウントが指定値を上回った場合
+
 			//移動値
 			m_move = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 
@@ -1639,13 +1742,15 @@ void CEnemy::Update(void)
 			m_nCntTime = 0;
 		}
 
-		if ((pos.x + m_scale.x / 2.0) <= 0.0f)
+		//左画面端に到達した場合
+		if ((pos.x - m_scale.x / 2.0) <= 0.0f)
 		{
 			//敵の消滅
 			m_bUninit = true;
 		}
+
 		//体力が0以下になった場合
-		else if (m_nLife <= 0)
+		if (m_nLife <= 0)
 		{
 			//敵の消滅
 			m_bUninit = true;
@@ -1653,6 +1758,7 @@ void CEnemy::Update(void)
 			//爆発の生成
 			CExplosion::Create(pos, D3DXVECTOR3(50, 50, 0));
 
+			//スコアを加算
 			pScore->AddScore(1000);
 
 			//爆発音
@@ -1661,10 +1767,10 @@ void CEnemy::Update(void)
 			//終了処理の呼び出し
 			Uninit();
 
+			//値を返す
 			return;
 		}
 	}
-
 
 	//移動換算
 	pos += m_move;
@@ -1672,14 +1778,26 @@ void CEnemy::Update(void)
 	//位置の更新
 	SetPosition(pos, m_scale);
 
+	//角度の更新
+	SetRot(rot);
+
 	//大きさ
 	SetScale(m_scale);
 
+	//色
+	SetColor(m_Color);
+
+	//判定がtrueの場合
 	if (m_bUninit == true)
 	{
+		//終了処理の呼び出し
 		Uninit();
 
+		//ゲージを消す
 		m_pLifeGauge = NULL;
+
+		//値を返す
+		return;
 	}
 }
 
@@ -1863,17 +1981,17 @@ void CEnemy::OnDiffuesPos(D3DXVECTOR3 pos, D3DXVECTOR3 move)
 	if (m_BossType == BOSSTYPE_CROSSING)
 	{
 		
-		for (int nCnt = 0; nCnt < 40; nCnt++)
+		for (int nCnt = 0; nCnt < 20; nCnt++)
 		{
 			//左交差弾の生成
 			CBullet::Create(D3DXVECTOR3(pos.x, pos.y, pos.z), D3DXVECTOR3(25, 25, 0),
-				D3DXVECTOR3(sinf(D3DX_PI * 0.5f * ((float)nCnt / (float)10)) * 6, cosf(D3DX_PI * 0.5f * ((float)nCnt / (float)10)) * 6, 0),
-				D3DXVECTOR3(0, (float)nCnt, 0), CBullet::BULLETTYPE_ENEMY, CBullet::ATTACKTYPE_CROSSING, CBullet::INFOTYPE_1);
+				D3DXVECTOR3(sinf(D3DX_PI * 0.5f * ((float)nCnt / (float)5)) * 6, cosf(D3DX_PI * 0.5f * ((float)nCnt / (float)5)) * 6, 0),
+				D3DXVECTOR3(0, (float)nCnt, 0), CBullet::BULLETTYPE_ENEMY, CBullet::ATTACKTYPE_LEFT_CROSSING, CBullet::INFOTYPE_2);
 
 			//右交差弾の生成
 			CBullet::Create(D3DXVECTOR3(pos.x, pos.y, pos.z), D3DXVECTOR3(25, 25, 0),
-				D3DXVECTOR3(sinf(D3DX_PI * 0.5f * ((float)nCnt / (float)10)) * 6, cosf(D3DX_PI * 0.5f * ((float)nCnt / (float)10)) * 6, 0),
-				D3DXVECTOR3(10, 0, 0), CBullet::BULLETTYPE_ENEMY, CBullet::ATTACKTYPE_CROSSING, CBullet::INFOTYPE_2);
+				D3DXVECTOR3(sinf(D3DX_PI * 0.5f * ((float)nCnt / (float)5)) * 6, cosf(D3DX_PI * 0.5f * ((float)nCnt / (float)5)) * 6, 0),
+				D3DXVECTOR3(10, 0, 0), CBullet::BULLETTYPE_ENEMY, CBullet::ATTACKTYPE_RIGHT_CROSSING, CBullet::INFOTYPE_2);
 		}
 	}
 
@@ -2183,6 +2301,65 @@ void CEnemy::OnMadnessBullet(void)
 
 			break;
 		}
+	}
+
+	//全方位交差弾の発狂時の処理
+	if (m_BossType == BOSSTYPE_ILLUSION)
+	{
+		//発狂1　カウントか残存体力に応じて弾の発射回数を増加させる
+		if (((float)m_nLife < (float)m_nMaxLife *0.75f) && ((float)m_nLife >= (float)m_nMaxLife *0.5f))
+		{
+			//フェーズタイプ
+			m_PhaseType = PHASETYPE_1;
+		}
+		else if (m_nCntMadness > 8 && m_nCntMadness <= 18)
+		{
+			//フェーズタイプ
+			m_PhaseType = PHASETYPE_1;
+		}
+
+		//発狂2
+		if (((float)m_nLife < (float)m_nMaxLife*0.5f) && ((float)m_nLife >= (float)m_nMaxLife *0.25f))
+		{
+			//フェーズタイプ
+			m_PhaseType = PHASETYPE_2;
+		}
+		else if (m_nCntMadness > 18 && m_nCntMadness <= 40)
+		{
+			//フェーズタイプ
+			m_PhaseType = PHASETYPE_1;
+		}
+
+		//発狂3
+		if (((float)m_nLife < (float)m_nMaxLife *0.25f))
+		{
+			//フェーズタイプ
+			m_PhaseType = PHASETYPE_3;
+		}
+		else if (m_nCntMadness > 40)
+		{
+			//フェーズタイプ
+			m_PhaseType = PHASETYPE_1;
+		}
+
+		//フェーズタイプ
+		switch (m_PhaseType)
+		{
+		case PHASETYPE_1:
+
+
+			break;
+
+		case PHASETYPE_2:
+
+
+			break;
+
+		case PHASETYPE_3:
+
+			break;
+		}
+
 	}
 }
 

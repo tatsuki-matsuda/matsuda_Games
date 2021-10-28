@@ -237,16 +237,16 @@ void CPlayer::Update(void)
 				if (m_timer % 6 == 0)
 				{
 					//íeÇÃê∂ê¨
-					CBullet::Create(D3DXVECTOR3(pos.x + 20, pos.y - 30, pos.z), D3DXVECTOR3(15, 15, 0), D3DXVECTOR3(0, -8, 0),
-						D3DXVECTOR3(0, 0, 0), CBullet::BULLETTYPE_PLAYER, CBullet::ATTACKTYPE_HOMING, CBullet::INFOTYPE_1);
+					CBullet::Create(D3DXVECTOR3(pos.x + 20, pos.y - 30, pos.z), D3DXVECTOR3(20, 20, 0), D3DXVECTOR3(0, -8, 0),
+						D3DXVECTOR3(0, 0, 0), CBullet::BULLETTYPE_PLAYER, CBullet::ATTACKTYPE_HOMING, CBullet::INFOTYPE_2);
 
 					//íeÇÃê∂ê¨
-					CBullet::Create(D3DXVECTOR3(pos.x - 20, pos.y - 30, pos.z), D3DXVECTOR3(15, 15, 0), D3DXVECTOR3(0, -8, 0),
-						D3DXVECTOR3(0, 0, 0), CBullet::BULLETTYPE_PLAYER, CBullet::ATTACKTYPE_HOMING, CBullet::INFOTYPE_1);
+					CBullet::Create(D3DXVECTOR3(pos.x - 20, pos.y - 30, pos.z), D3DXVECTOR3(20, 20, 0), D3DXVECTOR3(0, -8, 0),
+						D3DXVECTOR3(0, 0, 0), CBullet::BULLETTYPE_PLAYER, CBullet::ATTACKTYPE_HOMING, CBullet::INFOTYPE_2);
 
 					//íeÇÃê∂ê¨
-					CBullet::Create(D3DXVECTOR3(pos.x, pos.y - 40, pos.z), D3DXVECTOR3(15, 15, 0), D3DXVECTOR3(0, -8, 0),
-						D3DXVECTOR3(0, 0, 0), CBullet::BULLETTYPE_PLAYER, CBullet::ATTACKTYPE_HOMING, CBullet::INFOTYPE_1);
+					CBullet::Create(D3DXVECTOR3(pos.x, pos.y - 40, pos.z), D3DXVECTOR3(20, 20, 0), D3DXVECTOR3(0, -8, 0),
+						D3DXVECTOR3(0, 0, 0), CBullet::BULLETTYPE_PLAYER, CBullet::ATTACKTYPE_HOMING, CBullet::INFOTYPE_2);
 
 					//âπÇÃê∂ê¨
 					pSound->PlaySoundA(CSound::SOUND_LABEL_SE_SHOT);
@@ -258,15 +258,15 @@ void CPlayer::Update(void)
 			{//í èÌà⁄ìÆíÜÇÃî≠éÀ
 
 				//íeÇÃê∂ê¨
-				CNormal_Bullet::Create(D3DXVECTOR3(pos.x + 20, pos.y - 40, pos.z), D3DXVECTOR3(15, 15, 0), D3DXVECTOR3(0, -10, 0),
+				CNormal_Bullet::Create(D3DXVECTOR3(pos.x + 20, pos.y - 40, pos.z), D3DXVECTOR3(25, 25, 0), D3DXVECTOR3(0, -10, 0),
 					D3DXVECTOR3(0, 0, 0), CBullet::BULLETTYPE_PLAYER, CBullet::ATTACKTYPE_NORMAL, CBullet::INFOTYPE_1);
 
 				//íeÇÃê∂ê¨
-				CBullet::Create(D3DXVECTOR3(pos.x, pos.y - 40, pos.z), D3DXVECTOR3(15, 15, 0), D3DXVECTOR3(0, -8, 0),
-					D3DXVECTOR3(0, 0, 0), CBullet::BULLETTYPE_PLAYER, CBullet::ATTACKTYPE_HOMING, CBullet::INFOTYPE_1);
+				CBullet::Create(D3DXVECTOR3(pos.x, pos.y - 40, pos.z), D3DXVECTOR3(20, 20, 0), D3DXVECTOR3(0, -8, 0),
+					D3DXVECTOR3(0, 0, 0), CBullet::BULLETTYPE_PLAYER, CBullet::ATTACKTYPE_HOMING, CBullet::INFOTYPE_2);
 
 				//íeÇÃê∂ê¨
-				CNormal_Bullet::Create(D3DXVECTOR3(pos.x - 20, pos.y - 40, pos.z), D3DXVECTOR3(15, 15, 0), D3DXVECTOR3(0, -10, 0),
+				CNormal_Bullet::Create(D3DXVECTOR3(pos.x - 20, pos.y - 40, pos.z), D3DXVECTOR3(25, 25, 0), D3DXVECTOR3(0, -10, 0),
 					D3DXVECTOR3(0, 0, 0), CBullet::BULLETTYPE_PLAYER, CBullet::ATTACKTYPE_NORMAL, CBullet::INFOTYPE_1);
 
 				//âπÇÃê∂ê¨

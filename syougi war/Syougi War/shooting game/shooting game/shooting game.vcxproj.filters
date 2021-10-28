@@ -153,8 +153,11 @@
     <ClCompile Include="scene3D.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="logo.cpp">
+    <ClCompile Include="gamebg3D.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="logo.cpp">
+      <Filter>ソース ファイル\game\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -260,8 +263,11 @@
     <ClInclude Include="scene3D.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="logo.h">
+    <ClInclude Include="gamebg3D.h">
       <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="logo.h">
+      <Filter>ヘッダー ファイル\Game\UI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

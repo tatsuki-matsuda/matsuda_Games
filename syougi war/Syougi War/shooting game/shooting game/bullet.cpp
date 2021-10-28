@@ -24,7 +24,6 @@
 //*****************************************************************************
 LPDIRECT3DTEXTURE9 CBullet::m_pTexture[MAX_TEXTURE] = {};			// テクスチャ
 int CBullet::m_nIllusionCnt = 0;									// 幻覚弾カウント
-//int CBullet::m_nIllusionLeftCnt = 0;								// 左幻覚弾カウント
 int  CBullet::m_timer = 0;
 
 //*****************************************************************************
@@ -38,14 +37,8 @@ CBullet::CBullet(int nPriority) :CScene2D(nPriority)
 	//移動の初期値
 	m_move = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 
-	//角度の初期値
-	m_rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-
 	//体力値
 	m_nLife = BULLET_LIFE;
-
-	////回転軸
-	//m_fAngle = 0.0;
 
 	//回転速度
 	memset(&m_fAngleSpeed[0], 0, sizeof(m_fAngleSpeed));
@@ -103,6 +96,7 @@ HRESULT CBullet::Init(D3DXVECTOR3 pos, D3DXVECTOR3 scale, D3DXVECTOR3 move, D3DX
 
 	//m_nKeepObj = -1;
 
+	//敵死亡時の位置を保存
 	m_posDeath = D3DXVECTOR3(0, 0, 0);
 
 	//移動値を設定
@@ -124,12 +118,19 @@ HRESULT CBullet::Init(D3DXVECTOR3 pos, D3DXVECTOR3 scale, D3DXVECTOR3 move, D3DX
 	m_fAngleL = 0.0;
 
 	//右回転の値を設定
-	m_fAngleR = 0.0;
+	m_fAngleRot = 0.0;
 
 	//回転速度
 	m_fAngleSpeed[0] = (float)-0.03f;
 	m_fAngleSpeed[1] = (float)0.03;
 
+	//カウントを設定
+	m_nCnt = 0;
+
+	//追尾カウントを設定
+	m_nHomingCnt = 0;
+
+	//プレイヤー消滅後カウント
 	m_nPlayerCnt = 0;
 
 	//左回転カウントの設定
@@ -141,6 +142,18 @@ HRESULT CBullet::Init(D3DXVECTOR3 pos, D3DXVECTOR3 scale, D3DXVECTOR3 move, D3DX
 	//反射カウントの設定
 	m_nReflectionCnt = 0;
 
+	//	渦巻カウント
+	m_nCntSpiral = 0;																		
+
+	//　ボス出現カウント
+	m_nBossRespawnCnt = 0;																	
+
+	//	右幻覚移動カウント
+	m_nIllusionRightCnt = 0;																
+
+	//	左幻覚移動カウント
+	m_nIllusionLeftCnt = 0;																	
+
 	//反射使用設定
 	m_bGraze = false;
 
@@ -149,6 +162,9 @@ HRESULT CBullet::Init(D3DXVECTOR3 pos, D3DXVECTOR3 scale, D3DXVECTOR3 move, D3DX
 
 	//使われているかどうか
 	m_bUninit = false;
+
+	//色
+	m_Color = D3DXCOLOR(1.0f,1.0f,1.0f,1.0f);
 
 	//種類
 	SetObjType(OBJTYPE_BULLET);
@@ -180,9 +196,14 @@ void CBullet::Update(void)
 	//サウンドのポインタ
 	CSound *pSound = CManager::GetSound();
 
+	//角度の取得
+	m_rot = CScene2D::GetRot();
+
+	//交差弾時のカウント
+	m_nCrossingTime++;
+
 	//寿命
 	m_nLife--;
-
 	
 	//敵の弾の位置を保存
 	if (m_BulletType == BULLETTYPE_ENEMY)
@@ -194,20 +215,33 @@ void CBullet::Update(void)
 	if (m_BulletType == BULLETTYPE_PLAYER)
 	{
 		m_PlayerBulletpos = pos;
-	}
 
+		if (m_AttackType == ATTACKTYPE_NORMAL)
+		{
+			m_Color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+		}
+
+		if (m_AttackType == ATTACKTYPE_HOMING)
+		{
+			m_Color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+		}
+	}
 
 	//追跡弾の場合
 	if (m_AttackType == ATTACKTYPE_HOMING)
 	{
+		//カウント
 		m_nCnt++;
 
-		if (m_nCnt % 3 == 0 && m_InfoType == INFOTYPE_1)
+		//カウントが一定値を超えるまで
+		if (m_nCnt <= 120)
 		{
-			OnHoming();
-
-			m_move.y *= 1.05f;
-			m_move.x *= 1.05f;
+			//カウントが一定値で割ると0になる場合
+			if (m_nCrossingTime % 5 == 0)
+			{
+				//追尾処理
+				OnHoming();
+			}
 		}
 
 		//画面外処理
@@ -222,15 +256,12 @@ void CBullet::Update(void)
 	}
 
 	//左交差弾の場合
-	if (m_AttackType == ATTACKTYPE_CROSSING && m_InfoType == INFOTYPE_1)
+	if (m_AttackType == ATTACKTYPE_LEFT_CROSSING)
 	{
-
 		m_Color = D3DXCOLOR(0.8f, 1.0f, 0.7f, 1.0f);
 
-		SetColor(m_Color);
-
 		//カウントが一定値で割れた場合
-		if (m_nCrossingTimeL % 5 == 0)
+		if (m_nCrossingTime % 5 == 0)
 		{
 			//交差処理
 			OnCrossing();
@@ -252,27 +283,19 @@ void CBullet::Update(void)
 			m_bUninit = true;
 		}
 
-		//値を足す
-		m_nCrossingTimeL++;
 	}
 
 	//右交差弾の場合
-	if (m_AttackType == ATTACKTYPE_CROSSING && m_InfoType == INFOTYPE_2)
+	if (m_AttackType == ATTACKTYPE_RIGHT_CROSSING)
 	{
-
 		m_Color = D3DXCOLOR(0.9f, 1.0f, 0.8f, 1.0f);
 
-		SetColor(m_Color);
-
 		//カウントが一定値で割れた場合
-		if (m_nCrossingTimeR % 5 == 0)
+		if (m_nCrossingTime % 5 == 0)
 		{
 			//交差処理
 			OnCrossing();	
 		}
-
-		//値を足す
-		m_nCrossingTimeR++;
 
 		//体力が0になった場合
 		if (m_nLife <= 0)
@@ -294,13 +317,10 @@ void CBullet::Update(void)
 	//全方位反射弾の場合
 	if (m_AttackType == ATTACKTYPE_REFLECTION && m_InfoType == INFOTYPE_1)
 	{
-
 		//反射処理
 		OnReflection();
 
 		m_Color = D3DXCOLOR(0.5f, 0.5f, 1.0f, 1.0f);
-
-		SetColor(m_Color);
 
 		//値が一定値以上の場合
 		if (m_bReflection == true)
@@ -447,26 +467,12 @@ void CBullet::Update(void)
 
 	}
 
-	//右幻覚弾の場合
-	if (m_AttackType == ATTACKTYPE_ILLUSIN_RIGHT)
+	//左上幻覚弾の場合
+	if (m_AttackType == ATTACKTYPE_ILLUSIN_LEFT_UP)
 	{
-		//カウント
-		//m_move = D3DXVECTOR3(0.0f, 0.5f, 0.0f);
-
-		m_nIllusionLeftCnt++;
-
 		if (CGame::m_nCntBullet <= 180)
 		{
-			//if (m_nIllusionLeftCnt % 3 == 0)
-			{
-				m_move = D3DXVECTOR3(0.0f, 0.8f, 0.0f);
-
-
-			}
-			/*else
-			{
-			m_move = D3DXVECTOR3(0.0f, -0.5f, 0.0f);
-			}*/
+			m_move = D3DXVECTOR3(0.0f, -1.2f, 0.0f);
 
 			m_Color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -477,12 +483,36 @@ void CBullet::Update(void)
 
 			m_Color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.5f);
 
-			m_timer++;
-
 		}
 
-		//色
-		SetColor(m_Color);
+		//画面外処理
+		if (pos.y - m_scale.y / 2.0f < SCREEN_HEIGHT_TOP+15 ||
+			pos.y + m_scale.y / 2.0f > SCREEN_HEIGHT-15 ||
+			pos.x - m_scale.x / 2.0f < 15.0f ||
+			pos.x + m_scale.x / 2.0f > SCREEN_GAMEWIDTH - 15)
+		{
+			//消滅
+			m_bUninit = true;
+		}
+
+	}
+
+	//左下幻覚弾の場合
+	if (m_AttackType == ATTACKTYPE_ILLUSIN_LEFT_DAWN)
+	{	
+		if (CGame::m_nCntBullet <= 180)
+		{
+			m_move = D3DXVECTOR3(0.0f, 1.2f, 0.0f);
+
+			m_Color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+
+		}
+		else
+		{
+			m_move = D3DXVECTOR3(-0.4f, 0.0f, 0.0f);
+
+			m_Color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.5f);
+		}
 
 		//画面外処理
 		if (pos.y - m_scale.y / 2.0f < SCREEN_HEIGHT_TOP ||
@@ -496,43 +526,23 @@ void CBullet::Update(void)
 
 	}
 
-	//左幻覚弾の場合
-	if (m_AttackType == ATTACKTYPE_ILLUSIN_LEFT)
+	//右上幻覚弾の場合
+	if (m_AttackType == ATTACKTYPE_ILLUSIN_RIGHT_UP)
 	{
-		//カウント
-		//m_move = D3DXVECTOR3(0.0f, 0.5f, 0.0f);
+		if (CGame::m_nCntBullet <= 180)
+		{
+			m_move = D3DXVECTOR3(0.0f, -1.2f, 0.0f);
 
-		m_nIllusionLeftCnt++;
-		
-			if (CGame::m_nCntBullet <= 180)
-			{
-				//if (m_nIllusionLeftCnt % 3 == 0)
-				{
-					m_move = D3DXVECTOR3(0.0f, 0.8f, 0.0f);
+			m_Color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
 
-					
-				}
-				/*else
-				{
-					m_move = D3DXVECTOR3(0.0f, -0.5f, 0.0f);
-				}*/
+		}
+		else
+		{
+			m_move = D3DXVECTOR3(-0.4f, 0.0f, 0.0f);
+			
+			m_Color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.5f);
 
-				m_Color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
-
-			}
-			else
-			{
-				m_move = D3DXVECTOR3(-0.4f, 0.0f, 0.0f);
-
-				m_Color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.5f);
-
-				m_timer++;
-
-			}
-
-
-			//色
-			SetColor(m_Color);
+		}
 
 		//画面外処理
 		if (pos.y - m_scale.y / 2.0f < SCREEN_HEIGHT_TOP ||
@@ -544,6 +554,78 @@ void CBullet::Update(void)
 			m_bUninit = true;
 		}
 
+	}
+
+	//右下幻覚弾の場合
+	if (m_AttackType == ATTACKTYPE_ILLUSIN_RIGHT_DAWN)
+	{
+		if (CGame::m_nCntBullet <= 180)
+		{
+			m_move = D3DXVECTOR3(0.0f, 1.2f, 0.0f);
+
+			m_Color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+
+		}
+		else
+		{
+			m_move = D3DXVECTOR3(0.4f, 0.0f, 0.0f);
+
+			m_Color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.5f);
+
+		}
+
+		//画面外処理
+		if (pos.y - m_scale.y / 2.0f < SCREEN_HEIGHT_TOP ||
+			pos.y + m_scale.y / 2.0f > SCREEN_HEIGHT ||
+			pos.x - m_scale.x / 2.0f < 0.0f ||
+			pos.x + m_scale.x / 2.0f > SCREEN_GAMEWIDTH)
+		{
+			//消滅
+			m_bUninit = true;
+		}
+
+	}
+
+	//巨大弾の場合
+	if (m_AttackType == ATTACKTYPE_SCALEBULLET)
+	{
+		//カウント
+		m_nCnt++;
+
+		//追尾カウント
+		m_nHomingCnt++;
+
+		//if (m_nCnt <= 120)
+		{
+			//カウントが一定値で割ると0になる場合
+			if (m_nHomingCnt % 5 == 0)
+			{
+				////移動値
+				//m_move.y -= 0.02f;
+
+				////一定の大きさになるまで
+				////if (pos.x <= 150)
+				//{
+				//	//値を増加
+				//	pos.x++;
+				//}
+
+				////一定の大きさになるまで
+				//if (pos.y <= 150)
+				//{
+				//	//値を増加
+				//	pos.y++;
+				//}
+
+			}
+		}
+
+		//画面外処理
+		if (pos.y - m_scale.y / 2.0f > SCREEN_HEIGHT)
+		{
+			//消滅
+			m_bUninit = true;
+		}
 	}
 
 	//ボムの場合
@@ -610,7 +692,6 @@ void CBullet::Update(void)
 		//渦巻弾の場合
 		if (m_AttackType == ATTACKTYPE_SPIRAL)
 		{
-			//m_Color = D3DXCOLOR(1.0f, 0.5f, 0.0f, 0.9f);
 			m_Color = D3DXCOLOR(0.2f, 0.8f, 1.0f, 0.9f);
 
 			SetColor(m_Color);
@@ -637,6 +718,17 @@ void CBullet::Update(void)
 		}
 	}
 
+	if (m_InfoType == INFOTYPE_1)
+	{
+		//テクスチャ
+		BindTexture(m_pTexture[1]);
+	}
+
+	if (m_InfoType == INFOTYPE_2)
+	{
+		//テクスチャ
+		BindTexture(m_pTexture[0]);
+	}
 
 	//判定処理
 	OnCollision();
@@ -647,6 +739,11 @@ void CBullet::Update(void)
 	//位置の更新
 	SetPosition(pos, m_scale);
 
+	//角度の更新
+	SetRot(m_rot);
+
+	//色の更新
+	SetColor(m_Color);
 
 	//プレイヤー消滅状態および画面外の処理
 	//敵の弾だった場合
@@ -658,7 +755,7 @@ void CBullet::Update(void)
 			//被弾後カウント
 			m_nPlayerCnt++;
 
-			//カウントが一定の値を上回った場合
+			//カウントが一定値で割ると0になる場合
 			if (m_nPlayerCnt % 1 == 0)
 			{
 				//消滅
@@ -689,6 +786,9 @@ void CBullet::Update(void)
 	{
 		//終了処理の呼び出し
 		Uninit();
+		
+		//値を返す
+		return;
 	}
 }
 
@@ -730,12 +830,14 @@ void CBullet::OnCollision(void)
 				//プレイヤーの弾でかつタイプが敵の場合
 				if (BulletType == BULLETTYPE_PLAYER && objType == OBJTYPE_ENEMY)
 				{
-					//位置の取得
+					//敵の情報を取得
 					CEnemy *pEnemy = (CEnemy*)pScene;
 					D3DXVECTOR3 Enemypos;
-					Enemypos = pEnemy->GetPosition();
 
 					//位置の取得
+					Enemypos = pEnemy->GetPosition();
+
+					//大きさの取得
 					D3DXVECTOR3 Enemyscale;
 					Enemyscale = pEnemy->GetScale();
 
@@ -745,7 +847,6 @@ void CBullet::OnCollision(void)
 						pos.y + m_scale.y / 2.0f > Enemypos.y - Enemyscale.y / 2.0f&&
 						pos.y - m_scale.y / 2.0f < Enemypos.y + Enemyscale.y / 2.0f)
 					{
-
 						//爆発音
 						pSound->PlaySoundA(CSound::SOUND_LABEL_SE_HIT);
 
@@ -816,13 +917,23 @@ void CBullet::OnCollision(void)
 								nLife -= NORMAL_DAMAGE;
 								pEnemy->SetLife(nLife);
 
+
 								//値を代入
 								CLifeGauge *pLifeGauge = pEnemy->GetLifeGauge();
 
 								if (pLifeGauge != NULL)
 								{
+
+									//位置の取得
+									D3DXVECTOR3	GaugePos = pEnemy->GetLifeGauge()->GetPos();
+
+									//大きさの取得
+									D3DXVECTOR3	GaugeScale = pEnemy->GetLifeGauge()->GetScale();
+
 									//ゲージ縮小処理
 									pLifeGauge->OnDiffuse(NORMAL_DAMAGE);
+
+									pEnemy->GetLifeGauge()->SetPosition(GaugePos, GaugeScale);
 								}
 
 							}
@@ -840,8 +951,16 @@ void CBullet::OnCollision(void)
 
 								if (pLifeGauge != NULL)
 								{
+									//位置の取得
+									D3DXVECTOR3	GaugePos = pEnemy->GetLifeGauge()->GetPos();
+
+									//大きさの取得
+									D3DXVECTOR3	GaugeScale = pEnemy->GetLifeGauge()->GetScale();
+
 									//ゲージ縮小処理
 									pLifeGauge->OnDiffuse(HOMING_DAMAGE);
+
+									pEnemy->GetLifeGauge()->SetPosition(GaugePos, GaugeScale);
 								}
 							}
 
@@ -875,8 +994,16 @@ void CBullet::OnCollision(void)
 
 								if (pLifeGauge != NULL)
 								{
+									//位置の取得
+									D3DXVECTOR3	GaugePos = pEnemy->GetLifeGauge()->GetPos();
+
+									//大きさの取得
+									D3DXVECTOR3	GaugeScale = pEnemy->GetLifeGauge()->GetScale();
+
 									//ゲージ縮小処理
 									pLifeGauge->OnDiffuse(BOMB_DAMAGE);
+
+									pEnemy->GetLifeGauge()->SetPosition(GaugePos, GaugeScale);
 								}
 							}
 
@@ -889,9 +1016,10 @@ void CBullet::OnCollision(void)
 								m_bUninit = true;
 							}
 						}
+
+
 					}
 				}
-
 
 				//敵の弾でかつタイプがプレイヤーの場合
 				if (BulletType == BULLETTYPE_ENEMY && objType == OBJTYPE_PLAYER)
@@ -951,7 +1079,8 @@ void CBullet::OnCollision(void)
 							}
 						}
 					}
-					else if (m_AttackType == ATTACKTYPE_ILLUSIN_LEFT || m_AttackType == ATTACKTYPE_ILLUSIN_RIGHT)
+					else if (m_AttackType == ATTACKTYPE_ILLUSIN_LEFT_DAWN || m_AttackType == ATTACKTYPE_ILLUSIN_RIGHT_DAWN||
+							m_AttackType == ATTACKTYPE_ILLUSIN_LEFT_UP || m_AttackType == ATTACKTYPE_ILLUSIN_RIGHT_UP)
 					{
 						if (CGame::m_nCntBullet <= 180)
 						{
@@ -991,7 +1120,6 @@ void CBullet::OnCollision(void)
 
 									//被弾後カウント
 									m_nPlayerCnt++;
-
 
 									//被弾しても消滅しない
 									m_bUninit = false;
@@ -1062,7 +1190,7 @@ void CBullet::OnHoming(void)
 	float fLengthMin = 10000.0f;
 	float fAngle = 0.0f;
 
-	float fLengthHoming = 2000.0f;
+	float fLengthHoming = 300.0f;
 	float fAngleHoming = 0.0f;
 
 	for (int nCntScene = 0; nCntScene < MAX_POLYGON; nCntScene++)
@@ -1076,13 +1204,17 @@ void CBullet::OnHoming(void)
 			//プレイヤーの弾だった場合
 			if (m_BulletType == BULLETTYPE_PLAYER)
 			{
-				//位置の取得
+				//敵の情報を取得
 				CEnemy *pEnemy = (CEnemy*)pScene;
+
+				//敵位置の取得
 				D3DXVECTOR3 Enemypos;
 				Enemypos = pEnemy->GetPosition();
 
-				//位置の取得
+				//プレイヤーの情報を取得
 				CPlayer *pPlayer = (CPlayer*)pScene;
+
+				//プレイヤー位置の取得
 				D3DXVECTOR3 Playerpos;
 				Playerpos = pPlayer->GetPosition();
 
@@ -1096,11 +1228,61 @@ void CBullet::OnHoming(void)
 				float VectorHomingY = Playerpos.y - pos.y;
 				float fLengthHoming = sqrtf(VectorHomingX*VectorHomingX + VectorHomingY*VectorHomingY);
 
-				//値が指定値より低い場合
-				//if (fLengthHoming >= fLengthHoming)
+				if (pEnemy->GetEnemyType() != pEnemy->ENEMYTYPE_ILLUSION_LEFT || pEnemy->GetEnemyType() != pEnemy->ENEMYTYPE_ILLUSION_RIGHT)
 				{
 					//値が指定値より低い場合
-					if (fLengthObj <= fLengthMin)
+					if (fLengthHoming >= fLengthHoming)
+					{
+						//値が指定値より低い場合
+						if (fLengthObj <= fLengthMin)
+						{
+							//範囲を同じに
+							fLengthMin = fLengthObj;
+
+							fAngle = atan2f(VectorX, VectorY);
+
+							//ホーミング計算
+							float moveX = sinf(fAngle)*PLAYER_HOMING_X / 1.2f;
+							float moveY = cosf(fAngle)*PLAYER_HOMING_Y / 1.2f;
+
+							//移動値を同じに
+							m_move.x = moveX;
+							m_move.y = moveY;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	for (int nCntScene = 0; nCntScene < MAX_POLYGON; nCntScene++)
+	{
+		//Scene呼び出し
+		CScene*pScene;
+		pScene = CScene::GetScene(OBJTYPE_PLAYER, m_nKeepObj);
+
+		if (pScene != NULL)
+		{
+			//プレイヤーの弾だった場合
+			if (m_BulletType == BULLETTYPE_ENEMY)
+			{
+				//位置の取得
+				CPlayer *pPlayer = (CPlayer*)pScene;
+				D3DXVECTOR3 Playerpos;
+				Playerpos = pPlayer->GetPosition();
+
+				//角度計算
+				float VectorX = Playerpos.x - pos.x;
+				float VectorY = Playerpos.y - pos.y;
+				float fLengthObj = sqrtf(VectorX*VectorX + VectorY*VectorY);
+
+				//角度計算
+				float fangle = atan2f(VectorX, VectorY);
+
+				if (m_nHomingCnt % 1 == 0)
+				{
+					//値が指定値より低い場合
+					if (fLengthHoming <= fLengthMin)
 					{
 						//範囲を同じに
 						fLengthMin = fLengthObj;
@@ -1108,8 +1290,8 @@ void CBullet::OnHoming(void)
 						fAngle = atan2f(VectorX, VectorY);
 
 						//ホーミング計算
-						float moveX = sinf(fAngle)*PLAYER_HOMING_X / 1.2f;
-						float moveY = cosf(fAngle)*PLAYER_HOMING_Y / 1.2f;
+						float moveX = sinf(fAngle)*PLAYER_HOMING_X / 12.0f;
+						float moveY = cosf(fAngle)*PLAYER_HOMING_Y / 12.0f;
 
 						//移動値を同じに
 						m_move.x = moveX;
@@ -1119,48 +1301,6 @@ void CBullet::OnHoming(void)
 			}
 		}
 	}
-
-	//for (int nCntScene = 0; nCntScene < MAX_POLYGON; nCntScene++)
-	//{
-	//	//Scene呼び出し
-	//	CScene*pScene;
-	//	pScene = CScene::GetScene(OBJTYPE_PLAYER, m_nKeepObj);
-
-	//	if (pScene != NULL)
-	//	{
-	//		//プレイヤーの弾だった場合
-	//		if (m_BulletType == BULLETTYPE_ENEMY)
-	//		{
-	//			//位置の取得
-	//			CPlayer *pPlayer = (CPlayer*)pScene;
-	//			D3DXVECTOR3 Playerpos;
-	//			Playerpos = pPlayer->GetPosition();
-
-	//			//角度計算
-	//			float VectorX = Playerpos.x - pos.x;
-	//			float VectorY = Playerpos.y - pos.y;
-
-	//			//角度計算
-	//			float fangle = atan2f(VectorX, VectorY);
-
-	//			if (m_nCnt % 1 == 0)
-	//			{
-	//				//角度が一定値を超える場合
-	//				if ((fangle < -D3DX_PI / 4.0f&&fangle > -D3DX_PI) ||
-	//					(fangle > D3DX_PI / 4.0f&&fangle < D3DX_PI))
-	//				{
-	//					//ホーミング計算
-	//					float moveX = sinf(fangle)*PLAYER_HOMING_X;
-	//					float moveY = cosf(fangle)*PLAYER_HOMING_Y;
-
-	//					//移動値を換算
-	//					m_move.x = moveX;
-	//					m_move.y = moveY;
-	//				}
-	//			}
-	//		}
-	//	}
-	//}
 }
 
 //*****************************************************************************
@@ -1172,8 +1312,11 @@ void CBullet::OnCrossing(void)
 	D3DXVECTOR3 pos;
 	pos = GetPosition();
 
+	//角度の取得
+	D3DXVECTOR3 rot = CScene2D::GetRot();
+
 	//タイプが左交差弾の場合
-	if (m_AttackType == ATTACKTYPE_CROSSING&&m_InfoType == INFOTYPE_1)
+	if (m_AttackType == ATTACKTYPE_LEFT_CROSSING)
 	{
 		//回転軸の値
 		m_fAngleL -= m_fAngleSpeed[0];
@@ -1192,9 +1335,8 @@ void CBullet::OnCrossing(void)
 			float Lf = ((float)SCREEN_WIDTH - m_fAngleL) / (float)SCREEN_WIDTH;
 
 			//カウントが一定値を上回った場合
-			if (m_nCrossingTimeL >= 50)
+			if (m_nCrossingTimeL >= 5)
 			{
-
 				//回転軸計算
 				float LX = (m_move.x*cosf(m_fAngleL) + m_move.y*sinf(m_fAngleL)) / Lf;
 				float LY = (-m_move.x*sinf(m_fAngleL) + m_move.y*cosf(m_fAngleL)) / Lf;
@@ -1202,24 +1344,41 @@ void CBullet::OnCrossing(void)
 				//値を代入
 				m_move.x = LX/5.0f;
 				m_move.y = LY/5.0f;
+
+				if (m_nCrossingTime % 15 == 0)
+				{
+					//カウントの値をマイナス化
+					m_nCrossingTimeL -= 400;
+				}
 				
-				//カウントの値をマイナス化
-				m_nCrossingTimeL -= 700;
+			
 			}
+			else
+			{
+				m_nCrossingTimeL++;
+			}
+
+			//角度
+			if (m_nCrossingTime % 1 == 0 && rot.z >= -D3DX_PI / 4)
+			{
+				rot.z -= 0.04f;
+			}
+
+
 
 		}
 	}
 
 	//タイプが右交差弾の場合
-	if (m_AttackType == ATTACKTYPE_CROSSING&&m_InfoType == INFOTYPE_2)
+	if (m_AttackType == ATTACKTYPE_RIGHT_CROSSING)
 	{
 		//回転軸の値
-		m_fAngleR -= m_fAngleSpeed[1];
+		m_fAngleRot -= m_fAngleSpeed[1];
 
 		//回転軸の制御	
-		if (m_fAngleR >= D3DX_PI)
+		if (m_fAngleRot >= D3DX_PI)
 		{
-			m_fAngleR -= ((D3DX_PI / 2) / 90) * 1 + (m_nCrossingTimeR);
+			m_fAngleRot -= ((D3DX_PI / 2) / 90) * 1 + (m_nCrossingTimeR);
 		}
 
 		if (m_posOrigin != pos)
@@ -1227,23 +1386,37 @@ void CBullet::OnCrossing(void)
 			// 生成された位置から現在の位置までの距離を求める
 			D3DXVECTOR3 vec = m_posOrigin - pos;
 			float fLength = sqrtf(vec.x * vec.x + vec.y * vec.y);
-			float Rf = ((float)SCREEN_WIDTH - m_fAngleR) / (float)SCREEN_WIDTH;
+			float Rotf = ((float)SCREEN_WIDTH - m_fAngleRot) / (float)SCREEN_WIDTH;
 
 			//カウントが一定値を上回った場合
-			if (m_nCrossingTimeR >= 50)
+			if (m_nCrossingTimeR >= 5)
 			{
 				//回転軸計算
-				float RX = (m_move.x*cosf(m_fAngleR) + m_move.y*sinf(m_fAngleR)) / Rf;
-				float RY = (-m_move.x*sinf(m_fAngleR) + m_move.y*cosf(m_fAngleR)) / Rf;
+				float RotX = (m_move.x*cosf(m_fAngleRot) + m_move.y*sinf(m_fAngleRot));
+				float RotY = (-m_move.x*sinf(m_fAngleRot) + m_move.y*cosf(m_fAngleRot));
 
 				//値を代入
-				m_move.x = RX / 5.0f;
-				m_move.y = RY / 5.0f;
+				m_move.x = RotX / 5.0f;
+				m_move.y = RotY / 5.0f;
 				
-				//カウントの値をマイナス化
-				m_nCrossingTimeR -= 700;
-
+				if (m_nCrossingTime % 15 == 0)
+				{
+					//カウントの値をマイナス化
+					m_nCrossingTimeR -= 400;
+				}
 			}
+			else
+			{
+				m_nCrossingTimeR++;
+			}
+
+			//角度
+			if (m_nCrossingTime % 1 == 0 && rot.z <= D3DX_PI / 2)
+			{
+				rot.z += 0.04f;
+			}
+
+
 		}
 	}
 
@@ -1293,6 +1466,12 @@ void CBullet::OnCrossing(void)
 		}
 
 	}
+
+	//位置の更新
+	SetPosition(pos, m_scale);
+
+	//角度の更新
+	SetRot(rot);
 }
 
 //*****************************************************************************

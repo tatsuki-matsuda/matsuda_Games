@@ -79,7 +79,7 @@ HRESULT CBomb::Init(D3DXVECTOR3 pos, D3DXVECTOR3 scale)
 	//読み込み呼び出し
 	Load();
 
-	//残機分テクスチャを生成
+	//ボムの数分生成
 	for (int nCnt = 0; nCnt < m_nBomb; nCnt++)
 	{
 		if (m_apScene2D[nCnt] == NULL)
@@ -124,17 +124,12 @@ void CBomb::Update(void)
 	CScore *pScore;
 	pScore = CGame::GetScore();
 
-	//対角線の長さ
-	m_angle = sqrtf(15 * 15 + 15 * 15);
 
-	//対角線の角度
-	float fAngle = atan2f(5, 5);
-
-	for (int nCntLife = 0; nCntLife < m_nBomb; nCntLife++)
+	for (int nCntBomb = 0; nCntBomb < m_nBomb; nCntBomb++)
 	{
-		if (m_apScene2D[nCntLife] != NULL)
+		if (m_apScene2D[nCntBomb] != NULL)
 		{
-			m_apScene2D[nCntLife]->Update();
+			m_apScene2D[nCntBomb]->Update();
 		}
 	}
 }

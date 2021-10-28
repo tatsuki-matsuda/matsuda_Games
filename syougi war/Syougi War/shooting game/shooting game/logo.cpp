@@ -98,7 +98,6 @@ HRESULT CLogo::Init(D3DXVECTOR3 pos, D3DXVECTOR3 scale)
 	//	}
 
 	//	break;
-
 	}
 
 	//大きさ
@@ -349,7 +348,7 @@ HRESULT CLogo::Load(void)
 	pDevice = CManager::GetRenderer()->GetDevice();
 
 	//テクスチャの読み込み
-	D3DXCreateTextureFromFile(pDevice, "data\\TEXTURE\\StartLogo.png", &m_apTexture[0]);
+	D3DXCreateTextureFromFile(pDevice, "data\\TEXTURE\\TitleBg.png", &m_apTexture[0]);
 	D3DXCreateTextureFromFile(pDevice, "data\\TEXTURE\\enemy_Kasya.png", &m_apTexture[1]);
 
 	return S_OK;
